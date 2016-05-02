@@ -10,18 +10,6 @@ from sklearn import tree
 from sklearn import cross_validation as cv
 
 
-def main():
-    if len(sys.argv) != 3:
-        print("USAGE: DecisionTree.py [FILE] [SPAN]")
-        exit()
-
-    file_name = sys.argv[1]
-    samples = int(sys.argv[2])
-
-    result = prediction(file_name, samples)
-    print(file_name, "上がるぞぉぉぉ" if result == 1 else "下がるぞぉぉぉ")
-
-
 def prediction(file_name, samples):
     # ファイルを読むのです
     date_, adj_end = load_data(file_name)
@@ -83,10 +71,18 @@ def create_train_data(arr, samples):
 
 
 def verify(clf, train_x, train_y):
-    x, tX, y, tY = cv.train_test_split(train_x, train_y, test_size=0.2)
+    x, t_x, y, t_y = cv.train_test_split(train_x, train_y, test_size=0.2)
     clf.fit(x, y)
-    return clf.score(tX, tY)
+    return clf.score(t_x, t_y)
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) != 3:
+        print("USAGE: DecisionTree.py [FILE] [SPAN]")
+        exit()
+
+    file_name = sys.argv[1]
+    samples = int(sys.argv[2])
+
+    result, score = prediction(file_name, samples)
+    print(file_name, "score:", score, "上がるぞぉぉぉ" if result == 1 else "下がるぞぉぉぉ")

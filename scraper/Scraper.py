@@ -21,17 +21,6 @@ url_pattern = 'http://info.finance.yahoo.co.jp/history/' \
               '?code=%s&sy=1983&sm=1&sd=1&ey=%d&em=%d&ed=%d&tm=d&p=%d'
 
 
-def main():
-    if len(sys.argv) != 3:
-        print("USAGE: Scraper.py [TICKER] [FILE]")
-        exit()
-
-    # 株価データをファイルに保存するのです。
-    ticker = sys.argv[1]
-    file_name = sys.argv[2]
-    save_stock_data(ticker, file_name)
-
-
 def save_stock_data(ticker, file_name):
     stock_data = get_stock(ticker)
     f = open(file_name, 'w', encoding='UTF-8')
@@ -61,24 +50,27 @@ def get_stock(ticker):
                 tds = bs_tr.find_all('td')
                 if len(tds) == 7:
                     # 普通の銘柄
-                    date_ = tds[0].text
-                    start = (tds[1].text.replace(',', ''))
-                    high = (tds[2].text.replace(',', ''))
-                    low = (tds[3].text.replace(',', ''))
-                    end = (tds[4].text.replace(',', ''))
-                    volume = (tds[5].text.replace(',', ''))
-                    adj_end = (tds[6].text.replace(',', ''))
-                    stocks.append(Stock.Stock(date_, start, high, low, end, volume, adj_end))
+                    stock = Stock.Stock(
+                            date=tds[0].text,
+                            start=tds[1].text.replace(',', ''),
+                            high=tds[2].text.replace(',', ''),
+                            low=tds[3].text.replace(',', ''),
+                            end=tds[4].text.replace(',', ''),
+                            volume=tds[5].text.replace(',', ''),
+                            adj_end=tds[6].text.replace(',', '')
+                    )
+                    stocks.append(stock)
                 elif len(tds) == 5:
                     # 日経平均とか
-                    date_ = tds[0].text
-                    start = (tds[1].text.replace(',', ''))
-                    high = (tds[2].text.replace(',', ''))
-                    low = (tds[3].text.replace(',', ''))
-                    end = (tds[4].text.replace(',', ''))
-                    volume = ''
-                    adj_end = end
-                    stocks.append(Stock.Stock(date_, start, high, low, end, volume, adj_end))
+                    stock = Stock.Stock(
+                            date=tds[0].text,
+                            start=tds[1].text.replace(',', ''),
+                            high=tds[2].text.replace(',', ''),
+                            low=tds[3].text.replace(',', ''),
+                            end=tds[4].text.replace(',', ''),
+                            volume='',
+                            adj_end=tds[4].text.replace(',', ''))
+                    stocks.append(stock)
 
             if len(stocks) == len_stocks:
                 return stocks
@@ -96,4 +88,11 @@ def get_page(ticker, end_year, end_month, end_day, page):
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) != 3:
+        print("USAGE: Scraper.py [TICKER] [FILE]")
+        exit()
+
+    # 株価データをファイルに保存するのです。
+    ticker_ = sys.argv[1]
+    file_name_ = sys.argv[2]
+    save_stock_data(ticker_, file_name_)
