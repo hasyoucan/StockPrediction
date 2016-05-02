@@ -7,6 +7,7 @@ import sys
 import numpy as np
 import pandas as pd
 from sklearn import tree
+from sklearn import cross_validation as cv
 
 
 def main():
@@ -31,18 +32,18 @@ def prediction(file_name, samples):
     # 学習データを作るのです。
     train_x, train_y = create_train_data(adj_end, samples)
 
-    # 決定木のインスタンスを作って学習するのです。
+    # 決定木のインスタンスを作るのです。
     clf = tree.DecisionTreeClassifier()
+
+    # 交差検証するのです。
+    score = verify(clf, train_x, train_y)
+
+    # 学習して予測するのです!!
     clf.fit(train_x, train_y)
-
-    # 軽く検証するのです
-    verify(adj_end, clf, train_y, samples)
-
-    # 予測するのです!!
     last_data = adj_end.ix[len(adj_end) - samples - 1:len(adj_end)].values
-    last_dates = date_[len(adj_end) - samples - 1:len(adj_end)]
+    # last_dates = date_[len(adj_end) - samples - 1:len(adj_end)]
     # print(list(zip(last_dates, last_data)))
-    return clf.predict([last_data])[0]
+    return clf.predict([last_data])[0], score
 
 
 # ファイルを読み込むのです
@@ -81,17 +82,10 @@ def create_train_data(arr, samples):
     return np.array(train_x), np.array(train_y)
 
 
-def verify(arr, clf, train_y, samples):
-    test_y = []
-    for i in np.arange(0, len(arr) - samples - 1):
-        s = i + samples
-        test_x = [arr.ix[i:s].values]
-        result = clf.predict(test_x)
-        test_y.append(result[0])
-
-    for x, y in zip(train_y, np.array(test_y)):
-        if x != y:
-            print("はわわ…!")
+def verify(clf, train_x, train_y):
+    x, tX, y, tY = cv.train_test_split(train_x, train_y, test_size=0.2)
+    clf.fit(x, y)
+    return clf.score(tX, tY)
 
 
 if __name__ == '__main__':

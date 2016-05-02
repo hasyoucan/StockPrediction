@@ -16,15 +16,17 @@ def main():
     results = []
     for s in spans:
         for f in files:
-            _res = []
+            predicts = []
+            scores = []
             for c in np.arange(count):
-                preds = DecisionTree.prediction(f, s)
-                print("%d 日, %s" % (s, f), preds)
-                _res.append(preds)
+                predict, score = DecisionTree.prediction(f, s)
+                print("%d 日, %s" % (s, f), predict, "Score:", score)
+                predicts.append(predict)
+                scores.append(score)
 
-            ave = np.average(_res)
-            print("%d 日, %s" % (s, f), ave)
-            results.append(ave)
+            ave_predict = np.average(predicts)
+            print("Average: %d 日, %s" % (s, f), ave_predict, "Score:", np.average(scores))
+            results.append(ave_predict)
 
     print("結果")
     print('\t'.join([str(r) for r in results]))
