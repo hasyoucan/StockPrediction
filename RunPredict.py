@@ -1,6 +1,7 @@
 import numpy as np
 
 from prediction import DecisionTree
+from prediction import SVM
 
 
 def main():
@@ -14,22 +15,32 @@ def main():
     count = 10
 
     results = []
-    for s in spans:
-        for f in files:
-            predicts = []
-            scores = []
-            for c in np.arange(count):
-                predict, score = DecisionTree.prediction(f, s)
-                print("%d 日, %s" % (s, f), predict, "Score:", score)
-                predicts.append(predict)
-                scores.append(score)
+    score_results = []
 
-            ave_predict = np.average(predicts)
-            print("Average: %d 日, %s" % (s, f), ave_predict, "Score:", np.average(scores))
-            results.append(ave_predict)
+    def do_prediction(label, func):
+        for s in spans:
+            for f in files:
+                predicts = []
+                scores = []
+                for c in np.arange(count):
+                    predict, score = func(f, s)
+                    print("%s: %d 日, %s, Prediction: %f, Score: %f" % (label, s, f, predict, score))
+                    predicts.append(predict)
+                    scores.append(score)
+
+                ave_predict = np.average(predicts)
+                ave_score = np.average(scores)
+                print("%s: Average: %d 日, %s, Prediction: %f, Score: %f" % (
+                    label, s, f, ave_predict, ave_score))
+                results.append(ave_predict)
+                score_results.append(ave_score)
+
+    do_prediction("DT", DecisionTree.prediction)
+    do_prediction("SVM", SVM.prediction)
 
     print("結果")
     print('\t'.join([str(r) for r in results]))
+    print('\t'.join([str(r) for r in score_results]))
 
 
 if __name__ == '__main__':
