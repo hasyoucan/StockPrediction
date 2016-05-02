@@ -19,3 +19,8 @@ Scraper が生成した株価データを用いて、株価の変動を予測し
 ## 成績
 
 検証中です。
+
+
+## 参考
+
+* http://qiita.com/ynakayama/items/6a472e5ebbe9365186bd
