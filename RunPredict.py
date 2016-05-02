@@ -4,17 +4,12 @@ from prediction import DecisionTree
 
 
 def main():
-    files = [
-        '4517_biofel.txt',
-        '4686_js.txt',
-        '4839_wowwow.txt',
-        '6178_JP.txt',
-        '6920_laser.txt',
-        '7181_kampo.txt',
-        '7182_jpbank.txt',
-        '9433_kddi.txt',
-        'Nikkei225.txt',
-    ]
+    target_file = 'targets.txt'
+
+    lines = [line[:-1] for line in open(target_file, 'r', encoding='utf-8')]
+    split = [line.split('\t') for line in lines if
+             not (line.startswith('#') or len(line) == 0)]
+    files = [line[1] for line in split]
     spans = [5, 25]
     count = 10
 
