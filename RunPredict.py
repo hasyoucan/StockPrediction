@@ -2,6 +2,7 @@ import numpy as np
 
 from prediction import DecisionTree
 from prediction import SVM
+from prediction import SGD
 
 
 def main():
@@ -39,6 +40,8 @@ def main():
     dt_preds, dt_scores = do_prediction(DecisionTree.prediction)
     print("SVM")
     svm_preds, svm_scores = do_prediction(SVM.prediction)
+    print("SGD")
+    sgd_preds, sgd_scores = do_prediction(SGD.prediction)
 
     print("Decision Tree")
     print('\t'.join([str(r) for r in dt_preds]))
@@ -47,6 +50,10 @@ def main():
     print("SVM")
     print('\t'.join([str(r) for r in svm_preds]))
     print('\t'.join([str(r) for r in svm_scores]))
+
+    print("SGD")
+    print('\t'.join([str(r) for r in sgd_preds]))
+    print('\t'.join([str(r) for r in sgd_scores]))
 
 
 if __name__ == '__main__':

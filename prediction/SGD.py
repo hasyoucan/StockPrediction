@@ -1,12 +1,11 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# http://qiita.com/ynakayama/items/6a472e5ebbe9365186bd
 
 import sys
 import numpy as np
 import pandas as pd
-from sklearn import tree
+from sklearn import linear_model as lm
 from sklearn import cross_validation as cv
 
 
@@ -21,7 +20,7 @@ def prediction(file_name, samples):
     train_x, train_y = create_train_data(adj_end, samples)
 
     # 決定木のインスタンスを作るのです。
-    clf = tree.DecisionTreeClassifier()
+    clf = lm.SGDClassifier()
 
     # 交差検証するのです。
     score = verify(clf, train_x, train_y)
