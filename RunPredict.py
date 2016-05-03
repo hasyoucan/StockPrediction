@@ -14,33 +14,39 @@ def main():
     spans = [5, 25]
     count = 10
 
-    results = []
-    score_results = []
-
-    def do_prediction(label, func):
+    def do_prediction(func):
+        results = []
+        score_results = []
         for s in spans:
             for f in files:
                 predicts = []
                 scores = []
-                for c in np.arange(count):
+                for _ in np.arange(count):
                     predict, score = func(f, s)
-                    print("%s: %d 日, %s, Prediction: %f, Score: %f" % (label, s, f, predict, score))
+                    print("%d 日, %s, Prediction: %f, Score: %f" % (s, f, predict, score))
                     predicts.append(predict)
                     scores.append(score)
 
                 ave_predict = np.average(predicts)
                 ave_score = np.average(scores)
-                print("%s: Average: %d 日, %s, Prediction: %f, Score: %f" % (
-                    label, s, f, ave_predict, ave_score))
+                print("Average: %d 日, %s, Prediction: %f, Score: %f" %
+                      (s, f, ave_predict, ave_score))
                 results.append(ave_predict)
                 score_results.append(ave_score)
+        return results, score_results
 
-    do_prediction("DT", DecisionTree.prediction)
-    do_prediction("SVM", SVM.prediction)
+    print("Decision Tree")
+    dt_preds, dt_scores = do_prediction(DecisionTree.prediction)
+    print("SVM")
+    svm_preds, svm_scores = do_prediction(SVM.prediction)
 
-    print("結果")
-    print('\t'.join([str(r) for r in results]))
-    print('\t'.join([str(r) for r in score_results]))
+    print("Decision Tree")
+    print('\t'.join([str(r) for r in dt_preds]))
+    print('\t'.join([str(r) for r in dt_scores]))
+
+    print("SVM")
+    print('\t'.join([str(r) for r in svm_preds]))
+    print('\t'.join([str(r) for r in svm_scores]))
 
 
 if __name__ == '__main__':
