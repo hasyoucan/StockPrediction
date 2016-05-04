@@ -1,8 +1,9 @@
 import numpy as np
+from sklearn import linear_model as lm
+from sklearn import svm
+from sklearn import tree
 
-from prediction import DecisionTree
-from prediction import SVM
-from prediction import SGD
+from prediction import Predictor
 
 
 def main():
@@ -15,7 +16,7 @@ def main():
     spans = [5, 25]
     count = 10
 
-    def do_prediction(func):
+    def do_prediction(predictor):
         results = []
         score_results = []
         for s in spans:
@@ -23,7 +24,7 @@ def main():
                 predicts = []
                 scores = []
                 for _ in np.arange(count):
-                    predict, score = func(f, s)
+                    predict, score = predictor.prediction(f, s)
                     print("%d 日, %s, Prediction: %f, Score: %f" % (s, f, predict, score))
                     predicts.append(predict)
                     scores.append(score)
@@ -37,11 +38,11 @@ def main():
         return results, score_results
 
     print("Decision Tree")
-    dt_preds, dt_scores = do_prediction(DecisionTree.prediction)
+    dt_preds, dt_scores = do_prediction(Predictor.Predictor(tree.DecisionTreeClassifier()))
     print("SVM")
-    svm_preds, svm_scores = do_prediction(SVM.prediction)
+    svm_preds, svm_scores = do_prediction(Predictor.Predictor(svm.SVC()))
     print("SGD")
-    sgd_preds, sgd_scores = do_prediction(SGD.prediction)
+    sgd_preds, sgd_scores = do_prediction(Predictor.Predictor(lm.SGDClassifier()))
 
     print("Decision Tree")
     print('\t'.join([str(r) for r in dt_preds]))
