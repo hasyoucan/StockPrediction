@@ -14,9 +14,8 @@ def main():
              not (line.startswith('#') or len(line) == 0)]
     files = [line[1] for line in split]
     spans = [5, 25]
-    count = 10
 
-    def do_prediction(predictor):
+    def do_prediction(predictor, count):
         results = []
         score_results = []
         for s in spans:
@@ -38,11 +37,11 @@ def main():
         return results, score_results
 
     print("Decision Tree")
-    dt_preds, dt_scores = do_prediction(Predictor.Predictor(tree.DecisionTreeClassifier()))
+    dt_preds, dt_scores = do_prediction(Predictor.Predictor(tree.DecisionTreeClassifier()), 10)
     print("SVM")
-    svm_preds, svm_scores = do_prediction(Predictor.Predictor(svm.SVC()))
+    svm_preds, svm_scores = do_prediction(Predictor.Predictor(svm.SVC(kernel='rbf')), 5)
     print("SGD")
-    sgd_preds, sgd_scores = do_prediction(Predictor.Predictor(lm.SGDClassifier()))
+    sgd_preds, sgd_scores = do_prediction(Predictor.Predictor(lm.SGDClassifier()), 10)
 
     print("Decision Tree")
     print('\t'.join([str(r) for r in dt_preds]))
