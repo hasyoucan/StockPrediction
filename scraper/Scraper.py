@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 
 from scraper import Stock
 
-beautiful_soup_parser = 'lxml'
+beautiful_soup_parser = 'html.parser'
 
 url_pattern = 'http://info.finance.yahoo.co.jp/history/' \
               '?code=%s&sy=1983&sm=1&sd=1&ey=%d&em=%d&ed=%d&tm=d&p=%d'
