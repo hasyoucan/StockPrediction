@@ -8,7 +8,7 @@
 
 import sys
 import time
-from datetime import date
+from datetime import date, datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -51,7 +51,7 @@ def get_stock(ticker):
                 if len(tds) == 7:
                     # 普通の銘柄
                     stock = Stock.Stock(
-                            date=tds[0].text,
+                            date=convert_date(tds[0].text),
                             start=tds[1].text.replace(',', ''),
                             high=tds[2].text.replace(',', ''),
                             low=tds[3].text.replace(',', ''),
@@ -63,7 +63,7 @@ def get_stock(ticker):
                 elif len(tds) == 5:
                     # 日経平均とか
                     stock = Stock.Stock(
-                            date=tds[0].text,
+                            date=convert_date(tds[0].text),
                             start=tds[1].text.replace(',', ''),
                             high=tds[2].text.replace(',', ''),
                             low=tds[3].text.replace(',', ''),
@@ -86,6 +86,10 @@ def get_page(ticker, end_year, end_month, end_day, page):
     print(url)
     return BeautifulSoup(res.text, beautiful_soup_parser)
 
+
+def convert_date(date_str):
+    dt = datetime.strptime(date_str, '%Y年%m月%d日')
+    return dt.strftime('%Y-%m-%d')
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
