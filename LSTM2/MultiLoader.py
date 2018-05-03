@@ -17,19 +17,20 @@ class MultiLoader:
         # 日付を読み込む
         dates = self.__load_date_file(date_file)
         for stock_file in stock_files:
-                lines = [line[:-1] for line in open(stock_file, 'r', encoding='utf-8')]
-                for line in lines:
-                    splited_line = line.split('\t')
-                    stock_data = {
-                        'date':    splited_line[0],
-                        'high':    float(splited_line[2]),
-                        'low':     float(splited_line[3]),
-                        'end':     float(splited_line[4]),
-                        'adj_end': float(splited_line[6]),
-                        'ommyo':   float(splited_line[4]) - float(splited_line[1])
-                    }
-                    stocks = dates[splited_line[0]]
-                    stocks.append(stock_data)
+            lines = [line[:-1]
+                     for line in open(stock_file, 'r', encoding='utf-8')]
+            for line in lines:
+                splited_line = line.split('\t')
+                stock_data = {
+                    'date':    splited_line[0],
+                    'high':    float(splited_line[2]),
+                    'low':     float(splited_line[3]),
+                    'end':     float(splited_line[4]),
+                    'adj_end': float(splited_line[6]),
+                    'ommyo':   float(splited_line[4]) - float(splited_line[1])
+                }
+                stocks = dates[splited_line[0]]
+                stocks.append(stock_data)
 
         # 規定数に満たない日付のデータを削除
         dates = self.__trim_incomplete_data(dates, len(stock_files))
@@ -56,7 +57,6 @@ class MultiLoader:
         for key in delete_keys:
             del dates[key]
         return dates
-        
 
     def get_raw_data(self):
         return self.data
@@ -68,44 +68,27 @@ class MultiLoader:
                 ret_val[index][date_index] = stock[column]
         return ret_val
 
-
-# def load_data(file_name):
-#     """
-#     Scraper が吐き出したファイルを読むのです。
-#     日付と調整後終値を返すのです。
-#     """
-#     lines = [line[:-1] for line in open(file_name, 'r', encoding='utf-8')]
-#     split = [line.split('\t') for line in lines if
-#              not (line.startswith('#') or len(line) == 0)]
-#     # 日付, 高値, 安値, 調整後終値、(終値-始値))を返すのです。
-#     return ([line[0] for line in split],
-#             [float(line[2]) for line in split],
-#             [float(line[3]) for line in split],
-#             [float(line[4]) for line in split],
-#             [float(line[6]) for line in split],
-#             [float(line[4]) - float(line[1]) for line in split])
+    # def convert_data(values):
+    #     # 騰落率を出すのです。
+    #     returns = pd.Series(values).pct_change()
+    #     # 累積席を出すのです。
+    #     ret_index = (1 + returns).cumprod()
+    #     # 最初は 1 なのです。
+    #     ret_index[0] = 1.0
+    #     return ret_index
 
 
-def convert_data(values):
-    # 騰落率を出すのです。
-    returns = pd.Series(values).pct_change()
-    # 累積席を出すのです。
-    ret_index = (1 + returns).cumprod()
-    # 最初は 1 なのです。
-    ret_index[0] = 1.0
-    return ret_index
+if __name__ == '__main__':
+    stock_data_files = [
+        ',6501.txt', ',6502.txt', ',6503.txt', ',6702.txt', ',6752.txt',
+        ',6758.txt', ',6770.txt', ',6803.txt', ',6857.txt', ',7752.txt',
+    ]
+    date_file = ',date.txt'
 
-
-stock_data_files = [
-    ',6501.txt', ',6502.txt', ',6503.txt', ',6702.txt', ',6752.txt',
-    ',6758.txt', ',6770.txt', ',6803.txt', ',6857.txt', ',7752.txt',
-]
-date_file = ',date.txt'
-
-ml = MultiLoader(date_file, stock_data_files)
-# data = ml.get_raw_data()
-# print([date for date in data.items()])
-data = ml.extract('ommyo')
-print(data)
-# _, high, low, end, adj_end, ommyou = load_data(file_name)
-# up_down_rate = convert_data(adj_end)
+    ml = MultiLoader(date_file, stock_data_files)
+    # data = ml.get_raw_data()
+    # print([date for date in data.items()])
+    data = ml.extract('adj_end')
+    print(data)
+    # _, high, low, end, adj_end, ommyou = load_data(file_name)
+    # up_down_rate = convert_data(adj_end)
