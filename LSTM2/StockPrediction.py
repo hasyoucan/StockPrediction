@@ -156,10 +156,10 @@ def create_train_data(data, ommyou, samples):
     return np.array(_x), np.array(_y)
 
 
-def create_model():
+def create_model(dimension):
     model = Sequential()
     model.add(LSTM(hidden_neurons,
-                   batch_input_shape=(None, length_of_sequences, 10)))
+                   batch_input_shape=(None, length_of_sequences, dimension)))
     model.add(Dropout(0.5))
     model.add(Dense(in_out_neurons))
     model.add(Activation("sigmoid"))
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     test_y = Y[split_pos:]
 
     # LSTM モデルを作成
-    model = create_model()
+    model = create_model(len(stock_data_files))
     model.compile(loss="binary_crossentropy",
                   optimizer="adam", metrics=['accuracy'])
     history = model.fit(train_x, train_y, batch_size=10,
