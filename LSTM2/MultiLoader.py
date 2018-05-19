@@ -22,12 +22,13 @@ class MultiLoader:
             for line in lines:
                 splited_line = line.split('\t')
                 stock_data = {
-                    'date':    splited_line[0],
-                    'high':    float(splited_line[2]),
-                    'low':     float(splited_line[3]),
-                    'end':     float(splited_line[4]),
-                    'adj_end': float(splited_line[6]),
-                    'ommyo':   float(splited_line[4]) - float(splited_line[1])
+                    'date':         splited_line[0],
+                    'high':         float(splited_line[2]),
+                    'low':          float(splited_line[3]),
+                    'end':          float(splited_line[4]),
+                    'adj_end':      float(splited_line[6]),
+                    'ommyo':        float(splited_line[4]) - float(splited_line[1]),
+                    'up_down_rate': (float(splited_line[4]) - float(splited_line[1])) / float(splited_line[4]),
                 }
                 stocks = dates[splited_line[0]]
                 stocks.append(stock_data)

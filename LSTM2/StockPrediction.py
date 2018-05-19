@@ -27,25 +27,17 @@ def load_data(date_file, stock_data_files, target_stock_name):
     """
     multi_loader = MultiLoader(date_file, stock_data_files)
 
-    # 調整後終値
+    high = multi_loader.extract('high')
+    low = multi_loader.extract('low')
+    end = multi_loader.extract('end')
     adj_ends = multi_loader.extract('adj_end')
+    up_down_rate = multi_loader.extract('up_down_rate')
 
-    # 終値-始値→ Y
-    ommyo = multi_loader.extract('ommyo')
+    # (終値-始値)/終値→ Y
     target_index = stock_data_files.index(target_stock_name)
-    y_data = ommyo[target_index]
-    return (adj_ends, y_data)
-
-    # lines = [line[:-1] for line in open(file_name, 'r', encoding='utf-8')]
-    # split = [line.split('\t') for line in lines if
-    #          not (line.startswith('#') or len(line) == 0)]
-    # # 日付, 高値, 安値, 調整後終値、(終値-始値))を返すのです。
-    # return ([line[0] for line in split],
-    #         [float(line[2]) for line in split],
-    #         [float(line[3]) for line in split],
-    #         [float(line[4]) for line in split],
-    #         [float(line[6]) for line in split],
-    #         [float(line[4]) - float(line[1]) for line in split])
+    y_data = up_down_rate[target_index]
+    
+    return (high, low, end, adj_ends, y_data)
 
 
 def convert_data(values):
@@ -58,7 +50,7 @@ def convert_data(values):
     return ret_index
 
 
-def create_train_data(data, ommyou, samples):
+def create_train_data(high, low, end, adj_ends, up_down_rate, y_data, samples):
     tech_period = {
         'ma_short': 25,
         'ma_long': 75,
@@ -81,76 +73,79 @@ def create_train_data(data, ommyou, samples):
         'slow_stoc_sd': 3,
     }
 
-    # ma_short = Technical.moving_average(up_down_rate.values, tech_period['ma_short'])
-    # ma_long = Technical.moving_average(up_down_rate.values, tech_period['ma_long'])
-    # madr_short = Technical.moving_average_deviation_rate(adj_end, tech_period['madr_short'])
-    # madr_long = Technical.moving_average_deviation_rate(adj_end, tech_period['madr_long'])
-    # macd, macd_signal = Technical.macd(adj_end,
-    #                                    tech_period['macd_short'],
-    #                                    tech_period['macd_long'],
-    #                                    tech_period['macd_signal'])
-    # rsi = Technical.rsi(adj_end, tech_period['rsi'])
-    # roc = Technical.roc(adj_end, tech_period['roc'])
-    # fast_stoc_k = Technical.stochastic_K(end, high, low, tech_period['fast_stoc_k'])
-    # fast_stoc_d = Technical.stochastic_D(end, high, low,
-    #                                      tech_period['fast_stoc_k'],
-    #                                      tech_period['fast_stoc_d'])
-    # slow_stoc_d = Technical.stochastic_D(end, high, low,
-    #                                      tech_period['slow_stoc_k'],
-    #                                      tech_period['slow_stoc_d'])
-    # slow_stoc_sd = Technical.stochastic_slowD(end, high, low,
-    #                                           tech_period['slow_stoc_k'],
-    #                                           tech_period['slow_stoc_d'],
-    #                                           tech_period['slow_stoc_sd'])
+    ma_short = np.asarray([Technical.moving_average(
+        v, tech_period['ma_short'])[0].values for v in up_down_rate])
+    ma_long = np.asarray([Technical.moving_average(
+        v, tech_period['ma_long'])[0].values for v in up_down_rate])
+    madr_short = np.asarray([Technical.moving_average_deviation_rate(
+        v, tech_period['madr_short'])[0].values for v in adj_ends])
+    madr_long = np.asarray([Technical.moving_average_deviation_rate(
+        v, tech_period['madr_long'])[0].values for v in adj_ends])
+    macd = np.asarray([Technical.macd(v,
+                                      tech_period['macd_short'],
+                                      tech_period['macd_long'],
+                                      tech_period['macd_signal'])[0][0].values for v in adj_ends])
+    macd_signal = np.asarray([Technical.macd(v,
+                                             tech_period['macd_short'],
+                                             tech_period['macd_long'],
+                                             tech_period['macd_signal'])[1][0].values for v in adj_ends])
+    rsi = np.asarray([Technical.rsi(v, tech_period['rsi'])[
+                     0].values for v in adj_ends])
+    roc = np.asarray([Technical.roc(v, tech_period['roc'])[
+                     0].values for v in adj_ends])
+
+    fast_stoc_k = []
+    fast_stoc_d = []
+    slow_stoc_d = []
+    slow_stoc_sd = []
+    for i, e in enumerate(end):
+        h = high[i]
+        l = low[i]
+        fast_stoc_k.append(Technical.stochastic_K(
+            e, h, l, tech_period['fast_stoc_k'])[0].values)
+        fast_stoc_d.append(Technical.stochastic_D(e, h, l,
+                                                  tech_period['fast_stoc_k'],
+                                                  tech_period['fast_stoc_d'])[0].values)
+        slow_stoc_d.append(Technical.stochastic_D(e, h, l,
+                                                  tech_period['slow_stoc_k'],
+                                                  tech_period['slow_stoc_d'])[0].values)
+        slow_stoc_sd.append(Technical.stochastic_slowD(e, h, l,
+                                                       tech_period['slow_stoc_k'],
+                                                       tech_period['slow_stoc_d'],
+                                                       tech_period['slow_stoc_sd'])[0].values)
+    fast_stoc_k = np.asarray(fast_stoc_k)
+    fast_stoc_d = np.asarray(fast_stoc_d)
+    slow_stoc_d = np.asarray(slow_stoc_d)
+    slow_stoc_sd = np.asarray(slow_stoc_sd)
 
     # 先頭のこの日数分のデータは捨てる
-    # chop = max(tech_period.values())
-    chop = 0
+    chop = max(tech_period.values())
+    # chop = 0
 
     # 銘柄×日付→日付×銘柄に変換
-    _data_transposed = data.transpose()
+    # transposed = up_down_rate.transpose()
+    # transposed = rsi.transpose()
+    # transposed = roc.transpose()
+    # transposed = np.concatenate((macd, macd_signal)).transpose()
+    # transposed = np.concatenate((ma_short, ma_long)).transpose()
+    transposed = np.concatenate((madr_short, madr_long)).transpose()
+    # transposed = fast_stoc_k.transpose()
+    # transposed = np.concatenate((fast_stoc_k, fast_stoc_d)).transpose()
+    # transposed = np.concatenate((slow_stoc_d, slow_stoc_sd)).transpose()
 
     _x = []
     _y = []
     # サンプルのデータを学習、 1 サンプルずつ後ろにずらしていく
-    length = len(data[0])
+    length = len(up_down_rate[0])
     for i in np.arange(chop, length - samples - 1):
         s = i + samples  # samplesサンプル間の変化を素性にする
-        features = _data_transposed[i:s]
-        # feature = up_down_rate.iloc[i:s]
-        # _ma_short = ma_short.iloc[i:s]
-        # _ma_long = ma_long.iloc[i:s]
-        # _madr_short = madr_short.iloc[i:s]
-        # _madr_long = madr_long.iloc[i:s]
-        # _macd = macd.iloc[i:s]
-        # _macd_signal = macd_signal.iloc[i:s]
-        # _rsi = rsi.iloc[i:s]
-        # _roc = roc.iloc[i:s]
-        # _fast_stoc_k = fast_stoc_k.iloc[i:s]
-        # _fast_stoc_d = fast_stoc_d.iloc[i:s]
-        # _slow_stoc_d = slow_stoc_d.iloc[i:s]
-        # _slow_stoc_sd = slow_stoc_sd.iloc[i:s]
+        features = transposed[i:s]
 
-        if ommyou[s] > 0:
-            _y.append([1])  # 上がった
+        if y_data[s] > 0.03:
+            _y.append([1])  # 3%以上上がった
         else:
             _y.append([0])  # 上がらなかった
         _x.append(features)
-        # _x.append([[
-        #     feature.values[x],
-        #     # _ma_short.values[x][0],
-        #     # _ma_long.values[x][0],
-        #     # _madr_short.values[x][0],
-        #     # _madr_long.values[x][0],
-        #     _macd.values[x][0],
-        #     _macd_signal.values[x][0]
-        #     # _rsi.values[x][0],
-        #     # _roc.values[x][0],
-        #     # _fast_stoc_k.values[x][0],
-        #     # _fast_stoc_d.values[x][0],
-        #     # _slow_stoc_d.values[x][0],
-        #     # _slow_stoc_sd.values[x][0]
-        # ] for x in range(len(feature.values))])
 
     # 上げ下げの結果と教師データのセットを返す
     return np.array(_x), np.array(_y)
@@ -208,16 +203,17 @@ def print_predict_result(preds, test_y):
 if __name__ == '__main__':
 
     stock_data_files = [
-        ',6501.txt', ',6502.txt', ',6503.txt', ',6702.txt', ',6752.txt',
-        ',6758.txt', ',6770.txt', ',6803.txt', ',6857.txt', ',7752.txt',
+        ',Nikkei225.txt', ',Topix.txt', ',6501.txt',
     ]
     date_file = ',date.txt'
     # 調整後終値, y
-    adj_ends, y_data = load_data(date_file, stock_data_files, ',6501.txt')
+    high, low, end, adj_ends, y_data = load_data(
+        date_file, stock_data_files, ',6501.txt')
     up_down_rate = np.asarray([convert_data(adj_end) for adj_end in adj_ends])
 
     # 学習データを生成
-    X, Y = create_train_data(up_down_rate, y_data, length_of_sequences)
+    X, Y = create_train_data(high, low, end, adj_ends,
+                             up_down_rate, y_data, length_of_sequences)
 
     # データを学習用と検証用に分割
     split_pos = int(len(X) * 0.8)
@@ -227,7 +223,8 @@ if __name__ == '__main__':
     test_y = Y[split_pos:]
 
     # LSTM モデルを作成
-    model = create_model(len(stock_data_files))
+    dimension = len(X[0][0])
+    model = create_model(dimension)
     model.compile(loss="binary_crossentropy",
                   optimizer="adam", metrics=['accuracy'])
     history = model.fit(train_x, train_y, batch_size=10,
