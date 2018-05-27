@@ -10,16 +10,17 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM
 from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping
 
 from sklearn import metrics
 # from sklearn import cross_validation as cv
 
 
 hidden_neurons = 128
-length_of_sequences = 25
+length_of_sequences = 5
 in_out_neurons = 1
 
-epochs = 20
+epochs = 50
 
 
 def load_data(date_file, stock_data_files, target_stock_name):
@@ -125,8 +126,8 @@ def create_train_data(high, low, end, adj_ends, up_down_rate, ommyo_rate, y_data
     chop = 0
 
     # 銘柄×日付→日付×銘柄に変換
-    # transposed = up_down_rate.transpose()
-    transposed = ommyo_rate.transpose()
+    transposed = up_down_rate.transpose()
+    # transposed = ommyo_rate.transpose()
     # transposed = rsi.transpose()
     # transposed = roc.transpose()
     # transposed = np.concatenate((macd, macd_signal)).transpose()
@@ -154,9 +155,11 @@ def create_train_data(high, low, end, adj_ends, up_down_rate, ommyo_rate, y_data
 def create_model(dimension):
     model = Sequential()
     model.add(LSTM(hidden_neurons,
+                   kernel_initializer='random_uniform',
+                   return_sequences=False,
                    batch_input_shape=(None, length_of_sequences, dimension)))
-    model.add(Dropout(0.5))
-    model.add(Dense(in_out_neurons))
+    # model.add(Dropout(0.5))
+    model.add(Dense(in_out_neurons, kernel_initializer='random_uniform'))
     model.add(Activation("linear"))
     optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999)
     model.compile(loss="mean_squared_error",
@@ -193,7 +196,7 @@ if __name__ == '__main__':
     # 調整後終値, y
     high, low, end, adj_ends, ommyo_rate, y_data = load_data(date_file, stock_data_files, ',6501.txt')
     up_down_rate = np.asarray([convert_data(adj_end) for adj_end in adj_ends])
-    # y_data = convert_data(adj_ends[stock_data_files.index(',6501.txt')])
+    y_data = convert_data(adj_ends[stock_data_files.index(',6501.txt')])
 
     # 学習データを生成
     X, Y = create_train_data(high, low, end, adj_ends,
@@ -209,8 +212,9 @@ if __name__ == '__main__':
     # LSTM モデルを作成
     dimension = len(X[0][0])
     model = create_model(dimension)
+    es = EarlyStopping(monitor='loss', patience=10, verbose=1)
     history = model.fit(train_x, train_y, batch_size=10,
-                        epochs=epochs, verbose=1, validation_split=0.2)
+                        epochs=epochs, verbose=1, validation_split=0.2, callbacks=[es])
 
     # 学習の履歴
     print_train_history(history)
