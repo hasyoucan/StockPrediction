@@ -16,8 +16,8 @@ from sklearn import metrics
 # from sklearn import cross_validation as cv
 
 
-hidden_neurons = 128
-length_of_sequences = 5
+hidden_neurons = 4
+length_of_sequences = 25
 in_out_neurons = 1
 
 epochs = 50
@@ -190,7 +190,7 @@ def print_predict_result(preds, test_y):
 if __name__ == '__main__':
 
     stock_data_files = [
-        ',Nikkei225.txt', ',Topix.txt', ',6501.txt',
+        ',usdjpy.txt', ',6501.txt',
     ]
     date_file = ',date.txt'
     # 調整後終値, y
