@@ -163,28 +163,25 @@ def create_model(dimension):
     model.add(Activation("linear"))
     optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999)
     model.compile(loss="mean_squared_error",
-                  optimizer=optimizer, metrics=['accuracy'])
+                  optimizer=optimizer)
 
     return model
 
 
 def print_train_history(history):
-    print("Epoch,Acc,Loss,Val acc, Val loss")
-    for i in range(len(history.history['acc'])):
-        acc = history.history['acc'][i]
-        val_acc = history.history['val_acc'][i]
+    print("Epoch,Loss,Val loss")
+    for i in range(len(history.history['loss'])):
         loss = history.history['loss'][i]
         val_loss = history.history['val_loss'][i]
-        print("%d,%f,%f,%f,%f" % (i, acc, loss, val_acc, val_loss))
+        print("%d,%f,%f" % (i, loss, val_loss))
 
 
 def print_predict_result(preds, test_y):
-    print("i,predict,test,error")
+    print("i,predict,test")
     for i in range(len(preds)):
         predict = preds[i][0]
         test    = test_y[i][0]
-        print("%d,%f,%f,%f" % (i, predict, test, (predict - test) / test))
-    print('mean_squared_error:', metrics.mean_squared_error(test_y, preds))
+        print("%d,%f,%f" % (i, predict, test))
 
 
 if __name__ == '__main__':
