@@ -54,13 +54,9 @@ def load_data(date_file, stock_data_files, target_stock_name):
     low = multi_loader.extract('low')
     end = multi_loader.extract('end')
     adj_ends = multi_loader.extract('adj_end')
-    ommyo_rate = multi_loader.extract('ommyo_rate')
+    adj_starts = multi_loader.extract('adj_start')
 
-    # (終値-始値)/終値→ Y
-    target_index = stock_data_files.index(target_stock_name)
-    y_data = ommyo_rate[target_index]
-    
-    return (high, low, end, adj_ends, ommyo_rate, y_data)
+    return (high, low, end, adj_starts, adj_ends)
 
     
 def convert_data(values):
@@ -109,7 +105,7 @@ y_data = convert_data(adj_starts[stock_data_files.index(',6501.txt')])
 
 # 学習データを生成
 X, Y = create_train_data(high, low, end, adj_ends,
-                            up_down_rate, y_data, length_of_sequences)
+                         up_down_rate, y_data, length_of_sequences)
 ```
 
 
