@@ -21,14 +21,20 @@ class MultiLoader:
                      for line in open(stock_file, 'r', encoding='utf-8')]
             for line in lines:
                 splited_line = line.split('\t')
+                start = float(splited_line[1])
+                end = float(splited_line[4])
+                adj_end = float(splited_line[6])
+                adj_start = start * adj_end / end
                 stock_data = {
                     'date':       splited_line[0],
+                    'start':      start,
                     'high':       float(splited_line[2]),
                     'low':        float(splited_line[3]),
-                    'end':        float(splited_line[4]),
-                    'adj_end':    float(splited_line[6]),
-                    'ommyo':      float(splited_line[4]) - float(splited_line[1]),
-                    'ommyo_rate': (float(splited_line[4]) - float(splited_line[1])) / float(splited_line[4]),
+                    'end':        end,
+                    'adj_start':  adj_start,
+                    'adj_end':    adj_end,
+                    'ommyo':      end - start,
+                    'ommyo_rate': (end - start) / end,
                 }
                 stocks = dates[splited_line[0]]
                 stocks.append(stock_data)
