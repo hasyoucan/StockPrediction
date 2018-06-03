@@ -18,7 +18,7 @@ from sklearn import metrics
 
 hidden_neurons = 128
 length_of_sequences = 25
-in_out_neurons = 3
+in_out_neurons = 2
 
 epochs = 50
 
@@ -173,8 +173,8 @@ def print_train_history(history):
 
 def print_predict_result(preds, test_y, initial_value):
     print("i,predict,test")
-    for i in range(0, len(preds), 3):
-        for j in range(3):
+    for i in range(0, len(preds), in_out_neurons):
+        for j in range(in_out_neurons):
             predict = preds[i][j] * initial_value
             test    = test_y[i][j] * initial_value
             print("%d,%f,%f" % (i+j, predict, test))
