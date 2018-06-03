@@ -16,9 +16,9 @@ from sklearn import metrics
 # from sklearn import cross_validation as cv
 
 
-hidden_neurons = 4
+hidden_neurons = 128
 length_of_sequences = 25
-in_out_neurons = 1
+in_out_neurons = 3
 
 epochs = 50
 
@@ -34,13 +34,9 @@ def load_data(date_file, stock_data_files, target_stock_name):
     low = multi_loader.extract('low')
     end = multi_loader.extract('end')
     adj_ends = multi_loader.extract('adj_end')
-    ommyo_rate = multi_loader.extract('ommyo_rate')
+    adj_starts = multi_loader.extract('adj_start')
 
-    # (終値-始値)/終値→ Y
-    target_index = stock_data_files.index(target_stock_name)
-    y_data = ommyo_rate[target_index]
-    
-    return (high, low, end, adj_ends, ommyo_rate, y_data)
+    return (high, low, end, adj_starts, adj_ends)
 
 
 def convert_data(values):
@@ -53,7 +49,7 @@ def convert_data(values):
     return ret_index
 
 
-def create_train_data(high, low, end, adj_ends, up_down_rate, ommyo_rate, y_data, samples):
+def create_train_data(high, low, end, adj_ends, up_down_rate, y_data, samples):
     tech_period = {
         'ma_short': 25,
         'ma_long': 75,
@@ -127,7 +123,6 @@ def create_train_data(high, low, end, adj_ends, up_down_rate, ommyo_rate, y_data
 
     # 銘柄×日付→日付×銘柄に変換
     transposed = up_down_rate.transpose()
-    # transposed = ommyo_rate.transpose()
     # transposed = rsi.transpose()
     # transposed = roc.transpose()
     # transposed = np.concatenate((macd, macd_signal)).transpose()
@@ -141,11 +136,11 @@ def create_train_data(high, low, end, adj_ends, up_down_rate, ommyo_rate, y_data
     _y = []
     # サンプルのデータを学習、 1 サンプルずつ後ろにずらしていく
     length = len(up_down_rate[0])
-    for i in np.arange(chop, length - samples - 1):
+    for i in np.arange(chop, length - samples - 2):
         s = i + samples  # samplesサンプル間の変化を素性にする
         features = transposed[i:s]
 
-        _y.append([y_data[s]])
+        _y.append(y_data[s:s+in_out_neurons])
         _x.append(features)
 
     # 上げ下げの結果と教師データのセットを返す
@@ -176,28 +171,53 @@ def print_train_history(history):
         print("%d,%f,%f" % (i, loss, val_loss))
 
 
-def print_predict_result(preds, test_y):
+def print_predict_result(preds, test_y, initial_value):
     print("i,predict,test")
+    for i in range(0, len(preds), 3):
+        for j in range(3):
+            predict = preds[i][j] * initial_value
+            test    = test_y[i][j] * initial_value
+            print("%d,%f,%f" % (i+j, predict, test))
+
+    tp = 0
+    fp = 0
+    tn = 0
+    fn = 0
     for i in range(len(preds)):
-        predict = preds[i][0]
-        test    = test_y[i][0]
-        print("%d,%f,%f" % (i, predict, test))
+        predict = preds[i]
+        test    = test_y[i]
+        updown_p = predict[1] - predict[0]
+        updown_t = test[1] - test[0]
+        if updown_p > 0 and updown_t > 0:
+            tp += 1
+        elif updown_p > 0 and updown_t <= 0:
+            fp += 1
+        elif updown_p <= 0 and updown_t <= 0:
+            fn += 1
+        elif updown_p <= 0 and updown_t > 0:
+            tn += 1
+
+    print("TP = %d, FP = %d, TN = %d, FN = %d" % (tp, fp, tn, fn))
+    precision = tp / (tp + fp)
+    recall = tp / (tp + fn)
+    f_value = 2 * recall * precision / (recall + precision)
+    print("Precision = %f, Recall = %f, F = %f" % (precision, recall, f_value))
 
 
 if __name__ == '__main__':
 
     stock_data_files = [
-        ',usdjpy.txt', ',6501.txt',
+        ',Nikkei225.txt', ',Topix.txt', ',6501.txt',
     ]
     date_file = ',date.txt'
-    # 調整後終値, y
-    high, low, end, adj_ends, ommyo_rate, y_data = load_data(date_file, stock_data_files, ',6501.txt')
+
+    high, low, end, adj_starts, adj_ends = load_data(date_file, stock_data_files, ',6501.txt')
     up_down_rate = np.asarray([convert_data(adj_end) for adj_end in adj_ends])
-    y_data = convert_data(adj_ends[stock_data_files.index(',6501.txt')])
+    y_data = convert_data(adj_starts[stock_data_files.index(',6501.txt')])
 
     # 学習データを生成
     X, Y = create_train_data(high, low, end, adj_ends,
-                             up_down_rate, ommyo_rate, y_data, length_of_sequences)
+                             up_down_rate, y_data, length_of_sequences)
 
     # データを学習用と検証用に分割
     split_pos = int(len(X) * 0.8)
@@ -221,5 +241,6 @@ if __name__ == '__main__':
     print("score:", score)
 
     # 検証(2)
+    initial_value = adj_ends[stock_data_files.index(',6501.txt')][0]
     preds = model.predict(test_x)
-    print_predict_result(preds, test_y)
+    print_predict_result(preds, test_y, initial_value)
