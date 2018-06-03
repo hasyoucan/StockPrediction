@@ -17,8 +17,8 @@ from sklearn import metrics
 
 
 hidden_neurons = 128
-length_of_sequences = 25
-in_out_neurons = 2
+training_days = 25
+prediction_days = 2
 
 epochs = 50
 
@@ -136,11 +136,11 @@ def create_train_data(high, low, end, adj_ends, up_down_rate, y_data, samples):
     _y = []
     # サンプルのデータを学習、 1 サンプルずつ後ろにずらしていく
     length = len(up_down_rate[0])
-    for i in np.arange(chop, length - samples - 2):
+    for i in np.arange(chop, length - samples - prediction_days + 1):
         s = i + samples  # samplesサンプル間の変化を素性にする
         features = transposed[i:s]
 
-        _y.append(y_data[s:s+in_out_neurons])
+        _y.append(y_data[s:s+prediction_days])
         _x.append(features)
 
     # 上げ下げの結果と教師データのセットを返す
@@ -152,13 +152,12 @@ def create_model(dimension):
     model.add(LSTM(hidden_neurons,
                    kernel_initializer='random_uniform',
                    return_sequences=False,
-                   batch_input_shape=(None, length_of_sequences, dimension)))
+                   batch_input_shape=(None, training_days, dimension)))
     # model.add(Dropout(0.5))
-    model.add(Dense(in_out_neurons, kernel_initializer='random_uniform'))
+    model.add(Dense(prediction_days, kernel_initializer='random_uniform'))
     model.add(Activation("linear"))
     optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999)
-    model.compile(loss="mean_squared_error",
-                  optimizer=optimizer)
+    model.compile(loss="mean_squared_error", optimizer=optimizer)
 
     return model
 
@@ -173,8 +172,8 @@ def print_train_history(history):
 
 def print_predict_result(preds, test_y, initial_value):
     print("i,predict,test")
-    for i in range(0, len(preds), in_out_neurons):
-        for j in range(in_out_neurons):
+    for i in range(0, len(preds), prediction_days):
+        for j in range(prediction_days):
             predict = preds[i][j] * initial_value
             test    = test_y[i][j] * initial_value
             print("%d,%f,%f" % (i+j, predict, test))
@@ -217,7 +216,7 @@ if __name__ == '__main__':
 
     # 学習データを生成
     X, Y = create_train_data(high, low, end, adj_ends,
-                             up_down_rate, y_data, length_of_sequences)
+                             up_down_rate, y_data, training_days)
 
     # データを学習用と検証用に分割
     split_pos = int(len(X) * 0.8)
