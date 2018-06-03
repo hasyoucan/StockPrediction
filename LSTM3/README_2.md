@@ -90,9 +90,9 @@ def create_train_data(high, low, end, adj_ends, up_down_rate, y_data, samples):
     # 上げ下げの結果と教師データのセットを返す
     return np.array(_x), np.array(_y)
 
-in_out_neurons = 3
-length_of_sequences = 25
 
+in_out_neurons = 2
+length_of_sequences = 25
 
 stock_data_files = [
     ',Nikkei225.txt', ',Topix.txt', ',6501.txt',
@@ -137,7 +137,6 @@ from keras.callbacks import EarlyStopping
 
 
 hidden_neurons = 128
-in_out_neurons = 3
 epochs = 50
 
 
@@ -187,8 +186,8 @@ def print_train_history(history):
 
 def print_predict_result(preds, test_y, initial_value):
     print("i,predict,test")
-    for i in range(0, len(preds), 3):
-        for j in range(3):
+    for i in range(0, len(preds), in_out_neurons):
+        for j in range(in_out_neurons):
             predict = preds[i][j] * initial_value
             test    = test_y[i][j] * initial_value
             print("%d,%f,%f" % (i+j, predict, test))
@@ -258,16 +257,18 @@ LSTM の出力数(`hidden_neurons`)と、学習に使う日数 (`length_of_seque
 `hidden_neurons` が 128、`length_of_sequences` が 25日の場合が比較的良い結果が得られたので、この組み合わせで Precision, Recall を計算します。
 
 ```
-Precision = 0.502232, Recall = 0.661765, F = 0.571066
 Precision = 0.495899, Recall = 1.000000, F = 0.663011 (Negative なし)
-Precision = 0.509669, Recall = 0.534783, F = 0.521924
 Precision = 0.495899, Recall = 1.000000, F = 0.663011 (Negative なし)
-Precision = 0.666667, Recall = 0.002954, F = 0.005882
+Precision = 0.542601, Recall = 0.174101, F = 0.263617
+Precision = 0.510301, Recall = 0.467344, F = 0.487879
+Precision = 0.500412, Recall = 0.898080, F = 0.642706
 Precision = 0.495899, Recall = 1.000000, F = 0.663011 (Negative なし)
-Precision = 0.503861, Recall = 0.763158, F = 0.606977
-Precision = 0.529915, Recall = 0.179710, F = 0.268398
-ZeroDivisionError: division by zero  (Positive なし)
+Precision = 0.564516, Recall = 0.051170, F = 0.093834
+Precision = 0.497738, Recall = 0.985075, F = 0.661323
 ```
+
+Precision が勝率に相当しますが、0.5 を若干上回る程度なのでいい成績は出せそうにないですね。
+
 
 
 ## 結論
