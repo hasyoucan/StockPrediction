@@ -241,6 +241,6 @@ if __name__ == '__main__':
     print("score:", score)
 
     # 検証(2)
-    initial_value = adj_ends[stock_data_files.index(',6501.txt')][0]
+    initial_value = adj_starts[stock_data_files.index(',6501.txt')][0]
     preds = model.predict(test_x)
     print_predict_result(preds, test_y, initial_value)
