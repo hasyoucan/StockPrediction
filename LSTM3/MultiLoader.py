@@ -23,15 +23,21 @@ class MultiLoader:
                 splited_line = line.split('\t')
                 start = float(splited_line[1])
                 end = float(splited_line[4])
+                high = float(splited_line[2])
+                low = float(splited_line[3])
                 adj_end = float(splited_line[6])
                 adj_start = start * adj_end / end
+                adj_high = high * adj_end / end
+                adj_low = low * adj_end / end
                 stock_data = {
                     'date':       splited_line[0],
                     'start':      start,
-                    'high':       float(splited_line[2]),
-                    'low':        float(splited_line[3]),
+                    'high':       high,
+                    'low':        low,
                     'end':        end,
                     'adj_start':  adj_start,
+                    'adj_high':   adj_high,
+                    'adj_low':    adj_low,
                     'adj_end':    adj_end,
                     'ommyo':      end - start,
                     'ommyo_rate': (end - start) / end,
@@ -75,15 +81,6 @@ class MultiLoader:
                 ret_val[index][date_index] = stock[column]
         return ret_val
 
-    # def convert_data(values):
-    #     # 騰落率を出すのです。
-    #     returns = pd.Series(values).pct_change()
-    #     # 累積席を出すのです。
-    #     ret_index = (1 + returns).cumprod()
-    #     # 最初は 1 なのです。
-    #     ret_index[0] = 1.0
-    #     return ret_index
-
 
 if __name__ == '__main__':
     stock_data_files = [
@@ -93,9 +90,5 @@ if __name__ == '__main__':
     date_file = ',date.txt'
 
     ml = MultiLoader(date_file, stock_data_files)
-    # data = ml.get_raw_data()
-    # print([date for date in data.items()])
     data = ml.extract('adj_end')
     print(data)
-    # _, high, low, end, adj_end, ommyou = load_data(file_name)
-    # up_down_rate = convert_data(adj_end)
