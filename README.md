@@ -9,7 +9,7 @@
 ## インストール手順
 
 ```
-sudo pip3 install venv
+sudo apt install python3-venv
 source mkvenv.src.sh
 ```
 
@@ -29,6 +29,7 @@ pip install scipy
 pip install pandas
 pip install tensorflow
 pip install keras
+pip install matplotlib
 ```
 
 
