@@ -401,3 +401,35 @@ Precision = 0.824427, Recall = 0.361204, F = 0.502326
 ## ソースコード
 
 ソースコードは[ここ](https://github.com/SakaiTakao/StockPrediction)で公開しています。過去分のものもあります。今回のコードは `LSTM4` です。
+
+
+## 追記
+
+### 他の銘柄
+
+他の銘柄でも試してみました。
+
+#### 曙ブレーキ
+
+```
+Precision = 0.756881, Recall = 0.457064, F = 0.569948
+Precision = 0.823529, Recall = 0.416216, F = 0.552962
+Precision = 0.792929, Recall = 0.430137, F = 0.557726
+```
+
+#### 三菱UFJ
+
+```
+Precision = 0.823834, Recall = 0.447887, F = 0.580292
+Precision = 0.796117, Recall = 0.465909, F = 0.587814
+Precision = 0.818750, Recall = 0.394578, F = 0.532520
+```
+
+
+#### みずほFG
+
+```
+Precision = 0.942857, Recall = 0.228374, F = 0.367688
+Precision = 0.931818, Recall = 0.154717, F = 0.265372
+Precision = 0.927083, Recall = 0.288026, F = 0.439506
+```
