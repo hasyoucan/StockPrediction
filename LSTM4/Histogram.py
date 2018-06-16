@@ -42,10 +42,13 @@ if __name__ == '__main__':
 
         pylab.clf()
         pylab.hist(rod, bins=50, rwidth=0.8)
-        pylab.savefig('LSTM4Histogram%s.png' % (stock))
+        pylab.savefig(',LSTM4Histogram%s.png' % (stock))
 
-        # threshold = 0.012
-        # count = pd.cut(rod, [-1, -threshold, 0, threshold, 1]).value_counts()
-        categorized = pd.qcut(rod, 4, labels=['vlow', 'low', 'high','vhigh'])
+        threshold = 0.01
+        categorized = pd.cut(rod, [-1, -threshold, 0, threshold, 1], labels=False)
+        # categorized = pd.qcut(rod, 4)
+        # print(categorized)
         count = categorized.value_counts()
-        print(categorized)
+        # print(count)
+        count = pd.cut(rod, [-1, -threshold, 0, threshold, 1]).value_counts()
+        print(count)
