@@ -18,6 +18,8 @@ def load_data(date_file, stock_data_files):
     """
     multi_loader = MultiLoader(date_file, stock_data_files)
     adj_ends = multi_loader.extract('adj_end')
+    # adj_ends = multi_loader.extract('ommyo_log')
+    # adj_ends = multi_loader.extract('ommyo_rate')
     return adj_ends
 
 
@@ -39,16 +41,18 @@ if __name__ == '__main__':
         # 変化率を出す
         print(stock, i)
         rod = rate_of_decline(adj_ends[i])
+        # rod = adj_ends[i]
 
         pylab.clf()
         pylab.hist(rod, bins=50, rwidth=0.8)
         pylab.savefig(',LSTM4Histogram%s.png' % (stock))
 
-        threshold = 0.01
-        categorized = pd.cut(rod, [-1, -threshold, 0, threshold, 1], labels=False)
+        stdev = np.std(rod)
+        print('stdev', stdev)
+
+        threshold = 0.010
+        categorized = pd.cut(rod, [-1, -threshold, 0, threshold, 1])
         # categorized = pd.qcut(rod, 4)
         # print(categorized)
         count = categorized.value_counts()
-        # print(count)
-        count = pd.cut(rod, [-1, -threshold, 0, threshold, 1]).value_counts()
         print(count)

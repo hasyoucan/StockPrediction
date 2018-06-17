@@ -24,17 +24,21 @@ threshold = 0.01
 category_threshold = [-1, -threshold, 0, threshold, 1]
 
 
-def load_data(date_file, stock_data_files, target_stock_name):
+def load_data(date_file, stock_data_files):
     """
     Scraper が吐き出したファイルを読むのです。
     日付と調整後終値を返すのです。
     """
     multi_loader = MultiLoader(date_file, stock_data_files)
 
-    adj_ends = multi_loader.extract('adj_end')
     adj_starts = multi_loader.extract('adj_start')
+    high = multi_loader.extract('high')
+    low = multi_loader.extract('low')
+    adj_ends = multi_loader.extract('adj_end')
+    ommyo_rate = multi_loader.extract('ommyo_rate')
+    ommyo_log = multi_loader.extract('ommyo_log')
 
-    return (adj_starts, adj_ends)
+    return (adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log)
 
 
 def rate_of_decline(values):
@@ -49,8 +53,7 @@ def rate_of_decline(values):
 
 def pct_change(values):
     returns = pd.Series(values).pct_change()
-    returns[0] = 0
-    return returns
+    return returns[1:]
 
 
 def log_diff(values):
@@ -64,17 +67,18 @@ def log_diff(values):
     return ret_val
 
 
-def convert_data(values):
-    return log_diff(values)
+def create_train_data(adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log, y_data, samples):
 
-
-def create_train_data(adj_start, adj_ends, y_data, samples):
-
-    # udr_start = np.asarray([convert_data(v) for v in adj_start])
-    udr_end = np.asarray([convert_data(v) for v in adj_ends])
+    udr_start = np.asarray([log_diff(v) for v in adj_starts])
+    udr_high = np.asarray([log_diff(v) for v in high])
+    udr_low = np.asarray([log_diff(v) for v in low])
+    udr_end = np.asarray([log_diff(v) for v in adj_ends])
 
     # 銘柄×日付→日付×銘柄に変換
-    transposed = udr_end.transpose()
+    # transposed = udr_start.transpose()
+    # transposed = udr_end.transpose()
+    transposed = np.concatenate(
+        (udr_start, udr_high, udr_low, udr_end, ommyo_log)).transpose()
 
     _x = []
     _y = []
@@ -129,7 +133,7 @@ def print_predict_result(preds, test_y):
     # print("i,0,1,2,3,0,1,2,3")
     # for i in range(0, len(preds)):
     #     predict = preds[i]
-    #     test    = test_y[i]
+    #     test = test_y[i]
     #     print("%d, %f,%f,%f,%f, %f,%f,%f,%f" % (i, predict[0], predict[1], predict[2], predict[3],
     #                                             test[0], test[1], test[2], test[3]))
 
@@ -139,9 +143,9 @@ def print_predict_result(preds, test_y):
     fn = 0
     for i in range(len(preds)):
         predict = np.argmax(preds[i])
-        test    = np.argmax(test_y[i])
+        test = np.argmax(test_y[i])
         positive = True if predict == 2 or predict == 3 else False
-        true     = True if test == 2 or test == 3 else False
+        true = True if test == 2 or test == 3 else False
         if true and positive:
             tp += 1
         if not true and positive:
@@ -166,12 +170,16 @@ if __name__ == '__main__':
     ]
     date_file = ',date.txt'
 
-    adj_starts, adj_ends = load_data(date_file, stock_data_files, target_stock)
+    adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log = load_data(
+        date_file, stock_data_files)
     y_data = pct_change(adj_starts[stock_data_files.index(target_stock)])
+    # y_data = pct_change(adj_ends[stock_data_files.index(target_stock)])
+    # y_data = ommyo_rate[stock_data_files.index(target_stock)]
     y_data = pd.cut(y_data, category_threshold, labels=False)
 
     # 学習データを生成
-    X, Y = create_train_data(adj_starts, adj_ends, y_data, training_days)
+    X, Y = create_train_data(
+        adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log, y_data, training_days)
 
     # データを学習用と検証用に分割
     split_pos = int(len(X) * 0.8)

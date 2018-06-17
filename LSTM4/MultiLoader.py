@@ -2,6 +2,7 @@
 
 # coding: utf-8
 
+import math
 from collections import OrderedDict
 import numpy as np
 import pandas as pd
@@ -41,6 +42,7 @@ class MultiLoader:
                     'adj_end':    adj_end,
                     'ommyo':      end - start,
                     'ommyo_rate': (end - start) / end,
+                    'ommyo_log':  (math.log10(end / start)),
                 }
                 stocks = dates[splited_line[0]]
                 stocks.append(stock_data)
