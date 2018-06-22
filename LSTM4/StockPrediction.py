@@ -53,7 +53,8 @@ def rate_of_decline(values):
 
 def pct_change(values):
     returns = pd.Series(values).pct_change()
-    return returns[1:]
+    returns[0] = 0
+    return returns
 
 
 def log_diff(values):
@@ -61,7 +62,7 @@ def log_diff(values):
     # 全要素の対数を出す
     log_values = series.apply(math.log10)
     # 対数の差を出す
-    ret_val = log_values.diff().mul(100)
+    ret_val = log_values.diff()
     # 初期値は 0
     ret_val[0] = 0.0
     return ret_val
@@ -98,19 +99,13 @@ def create_train_data(adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log, y_
 def create_model(dimension):
     model = Sequential()
     model.add(LSTM(hidden_neurons,
-                   activation='tanh',
-                   recurrent_activation='hard_sigmoid',
                    use_bias=True,
-                   kernel_initializer='random_uniform',
-                   bias_initializer='zeros',
                    dropout=0.5,
                    recurrent_dropout=0.5,
                    return_sequences=False,
                    batch_input_shape=(None, training_days, dimension)))
     model.add(Dropout(0.5))
-    model.add(Dense(4,
-                    kernel_initializer='random_uniform',
-                    bias_initializer='zeros'))
+    model.add(Dense(4))
     model.add(Activation("softmax"))
     model.compile(loss="categorical_crossentropy",
                   optimizer="RMSprop", metrics=['categorical_accuracy'])
@@ -166,7 +161,7 @@ if __name__ == '__main__':
 
     target_stock = ',6501.txt'
     stock_data_files = [
-        ',Nikkei225.txt', ',TOPIX.txt', ',usdjpy.txt', target_stock,
+        ',Nikkei225.txt', ',TOPIX.txt', ',usdjpy.txt', ',6501.txt', ',7238.txt', ',8306.txt', ',8411.txt',
     ]
     date_file = ',date.txt'
 
@@ -199,9 +194,5 @@ if __name__ == '__main__':
     print_train_history(history)
 
     # 検証
-    score = model.evaluate(test_x, test_y, batch_size=10, verbose=1)
-    print("score:", score)
-
-    # 検証(2)
     preds = model.predict(test_x)
     print_predict_result(preds, test_y)
