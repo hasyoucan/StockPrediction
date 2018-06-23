@@ -17,14 +17,24 @@ def load_data(date_file, stock_data_files):
     日付と調整後終値を返すのです。
     """
     multi_loader = MultiLoader(date_file, stock_data_files)
-    adj_ends = multi_loader.extract('adj_end')
-    # adj_ends = multi_loader.extract('ommyo_log')
-    # adj_ends = multi_loader.extract('ommyo_rate')
-    return adj_ends
+    # values = multi_loader.extract('adj_start')
+    # values = multi_loader.extract('adj_end')
+    values = multi_loader.extract('ommyo_log')
+    # values = multi_loader.extract('ommyo_rate')
+    return values
 
 
 def rate_of_decline(values):
     ret_val = pd.Series(values).pct_change()
+    return ret_val[1:]
+
+
+def log_diff(values):
+    series = pd.Series(values)
+    # 全要素の対数を出す
+    log_values = series.apply(math.log10)
+    # 対数の差を出す
+    ret_val = log_values.diff()
     return ret_val[1:]
 
 
@@ -35,22 +45,24 @@ if __name__ == '__main__':
     ]
     date_file = ',date.txt'
 
-    adj_ends = load_data(date_file, stock_data_files)
+    values = load_data(date_file, stock_data_files)
 
     for (i, stock) in enumerate(stock_data_files):
         # 変化率を出す
         print(stock, i)
-        rod = rate_of_decline(adj_ends[i])
-        # rod = adj_ends[i]
+        # rod = log_diff(values[i])
+        rod = values[i]
 
         pylab.clf()
         pylab.hist(rod, bins=50, rwidth=0.8)
         pylab.savefig(',LSTM4Histogram%s.png' % (stock))
 
         stdev = np.std(rod)
-        print('stdev', stdev)
+        average = np.average(rod)
+        print('average:', average, 'stdev:', stdev)
 
-        threshold = 0.010
+        threshold = 0.0048
+        threshold = 0.002
         categorized = pd.cut(rod, [-1, -threshold, 0, threshold, 1])
         # categorized = pd.qcut(rod, 4)
         # print(categorized)

@@ -41,14 +41,14 @@ def load_data(date_file, stock_data_files):
     return (adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log)
 
 
-def rate_of_decline(values):
-    # 騰落率を出すのです。
-    returns = pd.Series(values).pct_change()
-    # 累積席を出すのです。
-    ret_index = (1 + returns).cumprod()
-    # 最初は 1 なのです。
-    ret_index[0] = 1.0
-    return ret_index
+# def rate_of_decline(values):
+#     # 騰落率を出すのです。
+#     returns = pd.Series(values).pct_change()
+#     # 累積席を出すのです。
+#     ret_index = (1 + returns).cumprod()
+#     # 最初は 1 なのです。
+#     ret_index[0] = 1.0
+#     return ret_index
 
 
 def pct_change(values):
@@ -57,33 +57,33 @@ def pct_change(values):
     return returns
 
 
-def log_diff(values):
-    series = pd.Series(values)
-    # 全要素の対数を出す
-    log_values = series.apply(math.log10)
-    # 対数の差を出す
-    ret_val = log_values.diff()
-    # 初期値は 0
-    ret_val[0] = 0.0
-    return ret_val
+# def log_diff(values):
+#     series = pd.Series(values)
+#     # 全要素の対数を出す
+#     log_values = series.apply(math.log10)
+#     # 対数の差を出す
+#     ret_val = log_values.diff()
+#     # 初期値は 0
+#     ret_val[0] = 0.0
+#     return ret_val
 
 
 def create_train_data(adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log, y_data, samples):
 
-    udr_start = np.asarray([log_diff(v) for v in adj_starts])
-    udr_high = np.asarray([log_diff(v) for v in high])
-    udr_low = np.asarray([log_diff(v) for v in low])
-    udr_end = np.asarray([log_diff(v) for v in adj_ends])
+    udr_start = np.asarray([pct_change(v) for v in adj_starts])
+    udr_high = np.asarray([pct_change(v) for v in high])
+    udr_low = np.asarray([pct_change(v) for v in low])
+    udr_end = np.asarray([pct_change(v) for v in adj_ends])
 
     # 銘柄×日付→日付×銘柄に変換
     # transposed = udr_start.transpose()
     # transposed = udr_end.transpose()
     transposed = np.concatenate(
-        (udr_start, udr_high, udr_low, udr_end, ommyo_log)).transpose()
+        (udr_start, udr_high, udr_low, udr_end, ommyo_rate)).transpose()
 
     _x = []
     _y = []
-    # サンプルのデータを学習、 1 サンプルずつ後ろにずらしていく
+    # サンプルのデータを学習、1 サンプルずつ後ろにずらしていく
     length = len(udr_end[0])
     for i in np.arange(0, length - samples):
         s = i + samples  # samplesサンプル間の変化を素性にする
@@ -159,9 +159,10 @@ def print_predict_result(preds, test_y):
 
 if __name__ == '__main__':
 
-    target_stock = ',6501.txt'
+    target_stock = ',Nikkei225.txt'
     stock_data_files = [
-        ',Nikkei225.txt', ',TOPIX.txt', ',usdjpy.txt', ',6501.txt', ',7238.txt', ',8306.txt', ',8411.txt',
+        ',Nikkei225.txt', ',TOPIX.txt',
+        ',6501.txt', ',7238.txt', ',8306.txt', ',8411.txt',
     ]
     date_file = ',date.txt'
 
