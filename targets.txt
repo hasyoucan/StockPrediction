@@ -1,1 +1,4 @@
-998407.O	,Nikkei225.txt
+#998405.T	,TOPIX.txt
+#998407.O	,Nikkei225.txt
+23337.T	,JASDAQ.txt
+#USDJPY%3DX	,usdjpy.txt

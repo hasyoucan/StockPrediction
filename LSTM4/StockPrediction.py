@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 # coding: utf-8
 
 import math
@@ -36,9 +38,8 @@ def load_data(date_file, stock_data_files):
     low = multi_loader.extract('low')
     adj_ends = multi_loader.extract('adj_end')
     ommyo_rate = multi_loader.extract('ommyo_rate')
-    ommyo_log = multi_loader.extract('ommyo_log')
 
-    return (adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log)
+    return (adj_starts, high, low, adj_ends, ommyo_rate)
 
 
 # def rate_of_decline(values):
@@ -68,7 +69,7 @@ def pct_change(values):
 #     return ret_val
 
 
-def create_train_data(adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log, y_data, samples):
+def create_train_data(adj_starts, high, low, adj_ends, ommyo_rate, y_data, samples):
 
     udr_start = np.asarray([pct_change(v) for v in adj_starts])
     udr_high = np.asarray([pct_change(v) for v in high])
@@ -124,14 +125,6 @@ def print_train_history(history):
 
 
 def print_predict_result(preds, test_y):
-    # print("i,predict,,,,actual,,,")
-    # print("i,0,1,2,3,0,1,2,3")
-    # for i in range(0, len(preds)):
-    #     predict = preds[i]
-    #     test = test_y[i]
-    #     print("%d, %f,%f,%f,%f, %f,%f,%f,%f" % (i, predict[0], predict[1], predict[2], predict[3],
-    #                                             test[0], test[1], test[2], test[3]))
-
     tp = 0
     fp = 0
     tn = 0
@@ -157,16 +150,17 @@ def print_predict_result(preds, test_y):
     print("Precision = %f, Recall = %f, F = %f" % (precision, recall, f_value))
 
 
-if __name__ == '__main__':
+def print_predict_result2(preds):
+    print("i,predict,,,,")
+    print("i,0,1,2,3")
+    for i in range(0, len(preds)):
+        predict = preds[i]
+        print("%d, %f,%f,%f,%f" %
+              (i, predict[0], predict[1], predict[2], predict[3]))
 
-    target_stock = ',Nikkei225.txt'
-    stock_data_files = [
-        ',Nikkei225.txt', ',TOPIX.txt',
-        ',6501.txt', ',7238.txt', ',8306.txt', ',8411.txt',
-    ]
-    date_file = ',date.txt'
 
-    adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log = load_data(
+def test_predict(stock_data_files, target_stock, date_file):
+    adj_starts, high, low, adj_ends, ommyo_rate = load_data(
         date_file, stock_data_files)
     y_data = pct_change(adj_starts[stock_data_files.index(target_stock)])
     # y_data = pct_change(adj_ends[stock_data_files.index(target_stock)])
@@ -175,7 +169,7 @@ if __name__ == '__main__':
 
     # 学習データを生成
     X, Y = create_train_data(
-        adj_starts, high, low, adj_ends, ommyo_rate, ommyo_log, y_data, training_days)
+        adj_starts, high, low, adj_ends, ommyo_rate, y_data, training_days)
 
     # データを学習用と検証用に分割
     split_pos = int(len(X) * 0.8)
@@ -197,3 +191,14 @@ if __name__ == '__main__':
     # 検証
     preds = model.predict(test_x)
     print_predict_result(preds, test_y)
+
+
+if __name__ == '__main__':
+
+    target_stock = ',Nikkei225.txt'
+    stock_data_files = [
+        ',Nikkei225.txt', ',TOPIX.txt', ',JASDAQ.txt'
+    ]
+    date_file = ',date.txt'
+
+    test_predict(stock_data_files, target_stock, date_file)

@@ -37,7 +37,8 @@ def get_stock(ticker):
 
     def _get_stock(page, stocks):
         soup = get_page(ticker, end_year, end_month, end_day, page)
-        time.sleep(0.5)
+        # 武士の情け
+        time.sleep(1)
         if page == 1:
             print(soup.title.text)
         trs = soup.select('table.boardFin tr')
