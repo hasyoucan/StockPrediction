@@ -223,8 +223,6 @@ def predict(stock_data_files, target_stock, date_file):
     train_x = X
     train_y = Y
     test_x = create_prediction_data(adj_starts, high, low, adj_ends, ommyo_rate, training_days)
-    print('train_x:', len(train_x), 'test_x:', len(test_x))
-    print('train_x:', train_x[-1], 'test_x:', test_x[-1])
 
     # LSTM モデルを作成
     dimension = len(X[0][0])
@@ -262,3 +260,4 @@ if __name__ == '__main__':
     date_file = ',date.txt'
 
     test_predict(stock_data_files, target_stock, date_file)
+    # predict(stock_data_files, target_stock, date_file)
