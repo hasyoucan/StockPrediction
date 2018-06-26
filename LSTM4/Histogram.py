@@ -18,13 +18,13 @@ def load_data(date_file, stock_data_files):
     """
     multi_loader = MultiLoader(date_file, stock_data_files)
     # values = multi_loader.extract('adj_start')
-    # values = multi_loader.extract('adj_end')
-    values = multi_loader.extract('ommyo_log')
+    values = multi_loader.extract('adj_end')
+    # values = multi_loader.extract('ommyo_log')
     # values = multi_loader.extract('ommyo_rate')
     return values
 
 
-def rate_of_decline(values):
+def pct_change(values):
     ret_val = pd.Series(values).pct_change()
     return ret_val[1:]
 
@@ -41,7 +41,7 @@ def log_diff(values):
 if __name__ == '__main__':
 
     stock_data_files = [
-        ',Nikkei225.txt', ',TOPIX.txt', ',6501.txt', ',7238.txt', ',8306.txt', ',8411.txt'
+        ',Nikkei225.txt', ',TOPIX.txt', ',6501.txt',
     ]
     date_file = ',date.txt'
 
@@ -50,8 +50,8 @@ if __name__ == '__main__':
     for (i, stock) in enumerate(stock_data_files):
         # 変化率を出す
         print(stock, i)
-        # rod = log_diff(values[i])
-        rod = values[i]
+        rod = pct_change(values[i])
+        # rod = values[i]
 
         pylab.clf()
         pylab.hist(rod, bins=50, rwidth=0.8)
@@ -61,8 +61,7 @@ if __name__ == '__main__':
         average = np.average(rod)
         print('average:', average, 'stdev:', stdev)
 
-        threshold = 0.0048
-        threshold = 0.002
+        threshold = 0.01
         categorized = pd.cut(rod, [-1, -threshold, 0, threshold, 1])
         # categorized = pd.qcut(rod, 4)
         # print(categorized)

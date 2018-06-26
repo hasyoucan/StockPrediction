@@ -150,22 +150,13 @@ def print_predict_result(preds, test_y):
     print("Precision = %f, Recall = %f, F = %f" % (precision, recall, f_value))
 
 
-def print_predict_result2(preds):
-    print("i,predict,,,,")
-    print("i,0,1,2,3")
-    for i in range(0, len(preds)):
-        predict = preds[i]
-        print("%d, %f,%f,%f,%f" %
-              (i, predict[0], predict[1], predict[2], predict[3]))
-
-
 def test_predict(stock_data_files, target_stock, date_file):
-    adj_starts, high, low, adj_ends, ommyo_rate = load_data(
-        date_file, stock_data_files)
-    y_data = pct_change(adj_starts[stock_data_files.index(target_stock)])
+    adj_starts, high, low, adj_ends, ommyo_rate = load_data(date_file, stock_data_files)
+
+    _y_data = pct_change(adj_starts[stock_data_files.index(target_stock)])
     # y_data = pct_change(adj_ends[stock_data_files.index(target_stock)])
     # y_data = ommyo_rate[stock_data_files.index(target_stock)]
-    y_data = pd.cut(y_data, category_threshold, labels=False)
+    y_data = pd.cut(_y_data, category_threshold, labels=False)
 
     # 学習データを生成
     X, Y = create_train_data(
@@ -193,11 +184,80 @@ def test_predict(stock_data_files, target_stock, date_file):
     print_predict_result(preds, test_y)
 
 
+
+
+
+###############################################################################
+def create_prediction_data(adj_starts, high, low, adj_ends, ommyo_rate, samples):
+
+    udr_start = np.asarray([pct_change(v) for v in adj_starts])
+    udr_high = np.asarray([pct_change(v) for v in high])
+    udr_low = np.asarray([pct_change(v) for v in low])
+    udr_end = np.asarray([pct_change(v) for v in adj_ends])
+
+    transposed = np.concatenate(
+        (udr_start, udr_high, udr_low, udr_end, ommyo_rate)).transpose()
+
+    _x = []
+    # サンプルのデータを学習、1 サンプルずつ後ろにずらしていく
+    length = len(udr_end[0])
+    for i in np.arange(length - samples, length - samples + 1):
+        s = i + samples  # samplesサンプル間の変化を素性にする
+        _x.append(transposed[i:s])
+
+    # 上げ下げの結果と教師データのセットを返す
+    return np.array(_x)
+
+
+def predict(stock_data_files, target_stock, date_file):
+    adj_starts, high, low, adj_ends, ommyo_rate = load_data(
+        date_file, stock_data_files)
+    y_data = pct_change(adj_starts[stock_data_files.index(target_stock)])
+    y_data = pd.cut(y_data, category_threshold, labels=False)
+
+    # 学習データを生成
+    X, Y = create_train_data(
+        adj_starts, high, low, adj_ends, ommyo_rate, y_data, training_days)
+
+    # データを学習用と検証用に分割
+    train_x = X
+    train_y = Y
+    test_x = create_prediction_data(adj_starts, high, low, adj_ends, ommyo_rate, training_days)
+    print('train_x:', len(train_x), 'test_x:', len(test_x))
+    print('train_x:', train_x[-1], 'test_x:', test_x[-1])
+
+    # LSTM モデルを作成
+    dimension = len(X[0][0])
+    model = create_model(dimension)
+    es = EarlyStopping(patience=10, verbose=1)
+    history = model.fit(train_x, train_y, batch_size=10,
+                        epochs=epochs, verbose=1, validation_split=0.1, callbacks=[es])
+    print_train_history(history)
+
+    # 検証
+    preds = model.predict(test_x)
+    print_predict_result2(preds)
+
+
+def print_predict_result2(preds):
+    print("i,predict,,,,")
+    print("i,0,1,2,3")
+    for i in range(0, len(preds)):
+        predict = preds[i]
+        print("%d, %f,%f,%f,%f" %
+              (i, predict[0], predict[1], predict[2], predict[3]))
+
+
+
+
+
+
+###############################################################################
 if __name__ == '__main__':
 
     target_stock = ',Nikkei225.txt'
     stock_data_files = [
-        ',Nikkei225.txt', ',TOPIX.txt', ',JASDAQ.txt'
+        ',Nikkei225.txt', ',TOPIX.txt', ',6501.txt'
     ]
     date_file = ',date.txt'
 
