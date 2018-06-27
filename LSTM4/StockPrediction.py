@@ -3,6 +3,7 @@
 # coding: utf-8
 
 import math
+import argparse
 import numpy as np
 import pandas as pd
 
@@ -17,6 +18,8 @@ from keras.callbacks import EarlyStopping
 from sklearn import metrics
 
 
+do_prediction = False
+
 hidden_neurons = 400
 training_days = 75
 
@@ -24,6 +27,20 @@ epochs = 50
 
 threshold = 0.01
 category_threshold = [-1, -threshold, 0, threshold, 1]
+
+
+def get_opt():
+    global do_prediction
+    try:
+        parser = argparse.ArgumentParser(
+            description='Executes testing and validation for stock price prediction.')
+        parser.add_argument('-p', required=False, action='store_true', dest='do_prediction',
+                            help='do prediction')
+        args = parser.parse_args()
+        do_prediction = args.do_prediction
+    except Exception as e:
+        print(e)
+        raise e
 
 
 def load_data(date_file, stock_data_files):
@@ -151,7 +168,8 @@ def print_predict_result(preds, test_y):
 
 
 def test_predict(stock_data_files, target_stock, date_file):
-    adj_starts, high, low, adj_ends, ommyo_rate = load_data(date_file, stock_data_files)
+    adj_starts, high, low, adj_ends, ommyo_rate = load_data(
+        date_file, stock_data_files)
 
     _y_data = pct_change(adj_starts[stock_data_files.index(target_stock)])
     # y_data = pct_change(adj_ends[stock_data_files.index(target_stock)])
@@ -163,7 +181,7 @@ def test_predict(stock_data_files, target_stock, date_file):
         adj_starts, high, low, adj_ends, ommyo_rate, y_data, training_days)
 
     # データを学習用と検証用に分割
-    split_pos = int(len(X) * 0.8)
+    split_pos = int(len(X) * 0.9)
     train_x = X[:split_pos]
     train_y = Y[:split_pos]
     test_x = X[split_pos:]
@@ -174,7 +192,7 @@ def test_predict(stock_data_files, target_stock, date_file):
     model = create_model(dimension)
     es = EarlyStopping(patience=10, verbose=1)
     history = model.fit(train_x, train_y, batch_size=10,
-                        epochs=epochs, verbose=1, validation_split=0.2, callbacks=[es])
+                        epochs=epochs, verbose=1, validation_split=0.1, callbacks=[es])
 
     # 学習の履歴
     print_train_history(history)
@@ -182,9 +200,6 @@ def test_predict(stock_data_files, target_stock, date_file):
     # 検証
     preds = model.predict(test_x)
     print_predict_result(preds, test_y)
-
-
-
 
 
 ###############################################################################
@@ -222,7 +237,8 @@ def predict(stock_data_files, target_stock, date_file):
     # データを学習用と検証用に分割
     train_x = X
     train_y = Y
-    test_x = create_prediction_data(adj_starts, high, low, adj_ends, ommyo_rate, training_days)
+    test_x = create_prediction_data(
+        adj_starts, high, low, adj_ends, ommyo_rate, training_days)
 
     # LSTM モデルを作成
     dimension = len(X[0][0])
@@ -247,11 +263,10 @@ def print_predict_result2(preds):
 
 
 
-
-
-
 ###############################################################################
 if __name__ == '__main__':
+
+    get_opt()
 
     target_stock = ',Nikkei225.txt'
     stock_data_files = [
@@ -259,5 +274,9 @@ if __name__ == '__main__':
     ]
     date_file = ',date.txt'
 
-    test_predict(stock_data_files, target_stock, date_file)
-    # predict(stock_data_files, target_stock, date_file)
+    if do_prediction:
+        print('Do prediction.')
+        predict(stock_data_files, target_stock, date_file)
+    else:
+        print('Do test and validation.')
+        test_predict(stock_data_files, target_stock, date_file)
