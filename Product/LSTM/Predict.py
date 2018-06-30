@@ -12,6 +12,10 @@ class Predict(PredictBase):
 
     def __init__(self):
         super().__init__()
+        self.draw_graph = False
+
+    def set_draw_graph(self, v):
+        self.draw_graph = v
 
     def predict(self, stock_data_files, target_stock, date_file):
         adj_starts, high, low, adj_ends, ommyo_rate = self.load_data(
@@ -36,7 +40,10 @@ class Predict(PredictBase):
         es = EarlyStopping(patience=10, verbose=1)
         history = model.fit(train_x, train_y, batch_size=10,
                             epochs=self.epochs, verbose=1, validation_split=0.1, callbacks=[es])
+
         self.print_train_history(history)
+        if self.draw_graph:
+            self.draw_train_history(history)
 
         # 検証
         preds = model.predict(test_x)

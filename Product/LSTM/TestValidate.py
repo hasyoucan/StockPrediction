@@ -12,6 +12,10 @@ class TestValidate(PredictBase):
 
     def __init__(self):
         super().__init__()
+        self.draw_graph = False
+
+    def set_draw_graph(self, v):
+        self.draw_graph = v
 
     def test_predict(self, stock_data_files, target_stock, date_file):
         adj_starts, high, low, adj_ends, ommyo_rate = self.load_data(
@@ -43,6 +47,8 @@ class TestValidate(PredictBase):
 
         # 学習の履歴
         self.print_train_history(history)
+        if self.draw_graph:
+            self.draw_train_history(history)
 
         # 検証
         preds = model.predict(test_x)

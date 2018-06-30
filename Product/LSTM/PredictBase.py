@@ -12,17 +12,24 @@ from keras.layers.recurrent import LSTM
 from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping
 
-from sklearn import metrics
+import matplotlib
+matplotlib.use('Agg')
+import pylab
 
 
 class PredictBase:
 
     def __init__(self):
+        # 学習に使う日数
         self.training_days = 75
 
-        self.hidden_neurons = 50
+        # LSTM の隠れ層
+        self.hidden_neurons = 400
+
+        # EPOCH 回数
         self.epochs = 50
 
+        # 株価変動の閾値
         threshold = 0.01
         self.category_threshold = [-1, -threshold, 0, threshold, 1]
 
@@ -97,3 +104,30 @@ class PredictBase:
             acc = history.history['categorical_accuracy'][i]
             val_acc = history.history['val_categorical_accuracy'][i]
             print("%d,%f,%f,%f,%f" % (i, loss, val_loss, acc, val_acc))
+
+    def draw_train_history(self, history):
+        loss = history.history['loss']
+        val_loss = history.history['val_loss']
+        acc = history.history['categorical_accuracy']
+        val_acc = history.history['val_categorical_accuracy']
+        xdata = np.arange(0, len(loss))
+
+        pylab.clf()
+        pylab.plot(xdata, loss, label='loss', color='blue')
+        pylab.plot(xdata, val_loss, label='val_loss', color='red')
+        pylab.title('Loss')
+        pylab.xlabel('Epochs')
+        pylab.ylabel('value')
+        pylab.ylim([0, math.ceil(max(loss + val_loss))])
+        pylab.legend(loc=2)
+        pylab.savefig(',train_history_loss.png')
+
+        pylab.clf()
+        pylab.plot(xdata, acc, label='acc', color='blue')
+        pylab.plot(xdata, val_acc, label='val_acc', color='red')
+        pylab.title('Accuracy')
+        pylab.xlabel('Epochs')
+        pylab.ylabel('value')
+        pylab.ylim([0, math.ceil(max(acc + val_acc))])
+        pylab.legend(loc=2)
+        pylab.savefig(',train_history_acc.png')
