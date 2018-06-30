@@ -118,7 +118,6 @@ class PredictBase:
         pylab.title('Loss')
         pylab.xlabel('Epochs')
         pylab.ylabel('value')
-        pylab.ylim([0, math.ceil(max(loss + val_loss))])
         pylab.legend(loc=2)
         pylab.savefig(',train_history_loss.png')
 
@@ -128,6 +127,5 @@ class PredictBase:
         pylab.title('Accuracy')
         pylab.xlabel('Epochs')
         pylab.ylabel('value')
-        pylab.ylim([0, math.ceil(max(acc + val_acc))])
         pylab.legend(loc=2)
         pylab.savefig(',train_history_acc.png')
