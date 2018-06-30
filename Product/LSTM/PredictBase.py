@@ -30,7 +30,7 @@ class PredictBase:
         self.epochs = 50
 
         # ミニバッチサイズ
-        self.batch_size = 800
+        self.batch_size = 500
 
         # 株価変動の閾値
         threshold = 0.01
