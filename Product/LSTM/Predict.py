@@ -38,7 +38,7 @@ class Predict(PredictBase):
         dimension = len(X[0][0])
         model = self.create_model(dimension)
         es = EarlyStopping(patience=10, verbose=1)
-        history = model.fit(train_x, train_y, batch_size=10,
+        history = model.fit(train_x, train_y, batch_size=self.batch_size,
                             epochs=self.epochs, verbose=1, validation_split=0.1, callbacks=[es])
 
         self.print_train_history(history)

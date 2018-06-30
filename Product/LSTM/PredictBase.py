@@ -29,6 +29,9 @@ class PredictBase:
         # EPOCH 回数
         self.epochs = 50
 
+        # ミニバッチサイズ
+        self.batch_size = 800
+
         # 株価変動の閾値
         threshold = 0.01
         self.category_threshold = [-1, -threshold, 0, threshold, 1]
