@@ -27,10 +27,10 @@ class PredictBase:
         self.hidden_neurons = 400
 
         # EPOCH 回数
-        self.epochs = 50
+        self.epochs = 200
 
         # ミニバッチサイズ
-        self.batch_size = 500
+        self.batch_size = 256
 
         # 株価変動の閾値
         threshold = 0.01
@@ -121,7 +121,7 @@ class PredictBase:
         pylab.title('Loss')
         pylab.xlabel('Epochs')
         pylab.ylabel('value')
-        pylab.legend(loc=2)
+        pylab.legend(loc='upper right')
         pylab.savefig(',train_history_loss.png')
 
         pylab.clf()
@@ -130,5 +130,5 @@ class PredictBase:
         pylab.title('Accuracy')
         pylab.xlabel('Epochs')
         pylab.ylabel('value')
-        pylab.legend(loc=2)
+        pylab.legend(loc='lower right')
         pylab.savefig(',train_history_acc.png')
