@@ -15,32 +15,19 @@ from keras.layers.recurrent import LSTM
 from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping
 
-from sklearn import metrics
+import matplotlib
+matplotlib.use('Agg')
+import pylab
 
-
-do_prediction = False
 
 hidden_neurons = 400
 training_days = 75
 
-epochs = 50
+epochs = 200
+batch_size = 256
 
 threshold = 0.01
 category_threshold = [-1, -threshold, 0, threshold, 1]
-
-
-def get_opt():
-    global do_prediction
-    try:
-        parser = argparse.ArgumentParser(
-            description='Executes testing and validation for stock price prediction.')
-        parser.add_argument('-p', required=False, action='store_true', dest='do_prediction',
-                            help='do prediction')
-        args = parser.parse_args()
-        do_prediction = args.do_prediction
-    except Exception as e:
-        print(e)
-        raise e
 
 
 def load_data(date_file, stock_data_files):
@@ -141,6 +128,32 @@ def print_train_history(history):
         print("%d,%f,%f,%f,%f" % (i, loss, val_loss, acc, val_acc))
 
 
+def draw_train_history(history):
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+    acc = history.history['categorical_accuracy']
+    val_acc = history.history['val_categorical_accuracy']
+    xdata = np.arange(0, len(loss))
+
+    pylab.clf()
+    pylab.plot(xdata, loss, label='loss', color='blue')
+    pylab.plot(xdata, val_loss, label='val_loss', color='red')
+    pylab.title('Loss')
+    pylab.xlabel('Epochs')
+    pylab.ylabel('value')
+    pylab.legend(loc='upper right')
+    pylab.savefig(',train_history_loss.png')
+
+    pylab.clf()
+    pylab.plot(xdata, acc, label='acc', color='blue')
+    pylab.plot(xdata, val_acc, label='val_acc', color='red')
+    pylab.title('Accuracy')
+    pylab.xlabel('Epochs')
+    pylab.ylabel('value')
+    pylab.legend(loc='lower right')
+    pylab.savefig(',train_history_acc.png')
+
+
 def print_predict_result(preds, test_y):
     tp = 0
     fp = 0
@@ -172,8 +185,8 @@ def test_predict(stock_data_files, target_stock, date_file):
         date_file, stock_data_files)
 
     _y_data = pct_change(adj_starts[stock_data_files.index(target_stock)])
-    # y_data = pct_change(adj_ends[stock_data_files.index(target_stock)])
-    # y_data = ommyo_rate[stock_data_files.index(target_stock)]
+    # _y_data = pct_change(adj_ends[stock_data_files.index(target_stock)])
+    # _y_data = ommyo_rate[stock_data_files.index(target_stock)]
     y_data = pd.cut(_y_data, category_threshold, labels=False)
 
     # 学習データを生成
@@ -181,7 +194,7 @@ def test_predict(stock_data_files, target_stock, date_file):
         adj_starts, high, low, adj_ends, ommyo_rate, y_data, training_days)
 
     # データを学習用と検証用に分割
-    split_pos = int(len(X) * 0.9)
+    split_pos = int(len(X) * 0.8)
     train_x = X[:split_pos]
     train_y = Y[:split_pos]
     test_x = X[split_pos:]
@@ -191,92 +204,26 @@ def test_predict(stock_data_files, target_stock, date_file):
     dimension = len(X[0][0])
     model = create_model(dimension)
     es = EarlyStopping(patience=10, verbose=1)
-    history = model.fit(train_x, train_y, batch_size=10,
-                        epochs=epochs, verbose=1, validation_split=0.1, callbacks=[es])
+    history = model.fit(train_x, train_y, batch_size=batch_size,
+                        epochs=epochs, verbose=1, validation_split=0.2, callbacks=[es])
 
     # 学習の履歴
     print_train_history(history)
+    draw_train_history(history)
 
     # 検証
     preds = model.predict(test_x)
     print_predict_result(preds, test_y)
 
 
-###############################################################################
-def create_prediction_data(adj_starts, high, low, adj_ends, ommyo_rate, samples):
-
-    udr_start = np.asarray([pct_change(v) for v in adj_starts])
-    udr_high = np.asarray([pct_change(v) for v in high])
-    udr_low = np.asarray([pct_change(v) for v in low])
-    udr_end = np.asarray([pct_change(v) for v in adj_ends])
-
-    transposed = np.concatenate(
-        (udr_start, udr_high, udr_low, udr_end, ommyo_rate)).transpose()
-
-    _x = []
-    # サンプルのデータを学習、1 サンプルずつ後ろにずらしていく
-    length = len(udr_end[0])
-    for i in np.arange(length - samples, length - samples + 1):
-        s = i + samples  # samplesサンプル間の変化を素性にする
-        _x.append(transposed[i:s])
-
-    # 上げ下げの結果と教師データのセットを返す
-    return np.array(_x)
-
-
-def predict(stock_data_files, target_stock, date_file):
-    adj_starts, high, low, adj_ends, ommyo_rate = load_data(
-        date_file, stock_data_files)
-    y_data = pct_change(adj_starts[stock_data_files.index(target_stock)])
-    y_data = pd.cut(y_data, category_threshold, labels=False)
-
-    # 学習データを生成
-    X, Y = create_train_data(
-        adj_starts, high, low, adj_ends, ommyo_rate, y_data, training_days)
-
-    # データを学習用と検証用に分割
-    train_x = X
-    train_y = Y
-    test_x = create_prediction_data(
-        adj_starts, high, low, adj_ends, ommyo_rate, training_days)
-
-    # LSTM モデルを作成
-    dimension = len(X[0][0])
-    model = create_model(dimension)
-    es = EarlyStopping(patience=10, verbose=1)
-    history = model.fit(train_x, train_y, batch_size=10,
-                        epochs=epochs, verbose=1, validation_split=0.1, callbacks=[es])
-    print_train_history(history)
-
-    # 検証
-    preds = model.predict(test_x)
-    print_predict_result2(preds)
-
-
-def print_predict_result2(preds):
-    print("i,predict,,,,")
-    print("i,0,1,2,3")
-    for i in range(0, len(preds)):
-        predict = preds[i]
-        print("%d, %f,%f,%f,%f" %
-              (i, predict[0], predict[1], predict[2], predict[3]))
-
-
 
 ###############################################################################
 if __name__ == '__main__':
 
-    get_opt()
-
-    target_stock = ',Nikkei225.txt'
+    target_stock = ',TOPIX.txt'
     stock_data_files = [
         ',Nikkei225.txt', ',TOPIX.txt', ',6501.txt'
     ]
     date_file = ',date.txt'
 
-    if do_prediction:
-        print('Do prediction.')
-        predict(stock_data_files, target_stock, date_file)
-    else:
-        print('Do test and validation.')
-        test_predict(stock_data_files, target_stock, date_file)
+    test_predict(stock_data_files, target_stock, date_file)
