@@ -23,7 +23,7 @@ import pylab
 hidden_neurons = 400
 training_days = 75
 
-epochs = 200
+epochs = 1000
 batch_size = 256
 
 threshold = 0.01
@@ -220,7 +220,7 @@ def test_predict(stock_data_files, target_stock, date_file):
 ###############################################################################
 if __name__ == '__main__':
 
-    target_stock = ',TOPIX.txt'
+    target_stock = ',Nikkei225.txt'
     stock_data_files = [
         ',Nikkei225.txt', ',TOPIX.txt', ',6501.txt'
     ]
