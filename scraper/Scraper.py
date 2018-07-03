@@ -13,7 +13,7 @@ from datetime import date, datetime
 import requests
 from bs4 import BeautifulSoup
 
-from scraper import Stock
+import Stock
 
 beautiful_soup_parser = 'html.parser'
 
