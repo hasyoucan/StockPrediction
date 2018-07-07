@@ -220,9 +220,9 @@ def test_predict(stock_data_files, target_stock, date_file):
 ###############################################################################
 if __name__ == '__main__':
 
-    target_stock = ',Nikkei225.txt'
+    target_stock = ',Nikkei225.csv'
     stock_data_files = [
-        ',Nikkei225.txt', ',TOPIX.txt', ',6501.txt'
+        ',Nikkei225.csv', ',TOPIX.csv', ',6501.csv'
     ]
     date_file = ',date.txt'
 
