@@ -1,5 +1,5 @@
-998405.T	,TOPIX.txt
-998407.O	,Nikkei225.txt
-6501.T	,6501.txt
-#23337.T	,JASDAQ.txt
-#USDJPY%3DX	,usdjpy.txt
+998405.T	,TOPIX.csv
+998407.O	,Nikkei225.csv
+6501.T	,6501.csv
+#23337.T	,JASDAQ.csv
+#USDJPY%3DX	,usdjpy.csv

@@ -24,8 +24,8 @@ url_pattern = 'http://info.finance.yahoo.co.jp/history/' \
 def save_stock_data(ticker, file_name):
     stock_data = get_stock(ticker)
     f = open(file_name, 'w', encoding='UTF-8')
-    [f.write("%s\t%s\t%s\t%s\t%s\t%s\t%s\n" % (
-        s.date, s.start, s.high, s.low, s.end, s.volume, s.adj_end)) for s in stock_data[::-1]]
+    [f.write("%s,%s,%s,%s,%s,%s,%s\n" % (
+        s.date, s.start, s.high, s.low, s.end, s.adj_end, s.volume)) for s in stock_data[::-1]]
     f.close()
 
 

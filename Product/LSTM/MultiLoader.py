@@ -21,12 +21,12 @@ class MultiLoader:
             lines = [line[:-1]
                      for line in open(stock_file, 'r', encoding='utf-8')]
             for line in lines:
-                splited_line = line.split('\t')
+                splited_line = line.split(',')
                 start = float(splited_line[1])
-                end = float(splited_line[4])
                 high = float(splited_line[2])
                 low = float(splited_line[3])
-                adj_end = float(splited_line[6])
+                end = float(splited_line[4])
+                adj_end = float(splited_line[5])
                 adj_start = start * adj_end / end
                 adj_high = high * adj_end / end
                 adj_low = low * adj_end / end
