@@ -21,7 +21,7 @@ import pylab
 
 hidden_neurons = 400
 training_days = 75
-prediction_days = 5
+prediction_days = 1
 
 batch_size = 256
 epochs = 1000
@@ -97,7 +97,7 @@ def create_train_data(high, low, end, adj_start, adj_ends, y_data, samples):
         'slow_stoc_sd': 3,
     }
 
-    ma_sshort = np.asarray([Technical.moving_average(v, 25)[0].values for v in udr_end])
+    ma_sshort = np.asarray([Technical.moving_average(v, 5)[0].values for v in udr_end])
     # ma_short = np.asarray([Technical.moving_average(
     #     v, tech_period['ma_short'])[0].values for v in udr_end])
     # ma_long = np.asarray([Technical.moving_average(
@@ -144,7 +144,7 @@ def create_train_data(high, low, end, adj_start, adj_ends, y_data, samples):
     # slow_stoc_sd = np.asarray(slow_stoc_sd)
 
     # 先頭のこの日数分のデータは捨てる
-    chop = max(tech_period.values())
+    chop = 5 #max(tech_period.values())
     # chop = 0
 
     # 銘柄×日付→日付×銘柄に変換
@@ -164,10 +164,10 @@ def create_train_data(high, low, end, adj_start, adj_ends, y_data, samples):
     _y = []
     # サンプルのデータを学習、 1 サンプルずつ後ろにずらしていく
     length = len(udr_end[0])
-    for i in np.arange(chop, length - samples - prediction_days + 1):
+    for i in np.arange(chop, length - samples - prediction_days):
         s = i + samples  # samplesサンプル間の変化を素性にする
         _x.append(transposed[i:s])
-        _y.append(y_data[s:s+prediction_days])
+        _y.append([y_data[s+prediction_days]])
 
     # 上げ下げの結果と教師データのセットを返す
     return np.array(_x), np.array(_y)
@@ -180,7 +180,7 @@ def create_model(dimension):
                    return_sequences=False,
                    batch_input_shape=(None, training_days, dimension)))
     model.add(Dropout(0.5))
-    model.add(Dense(prediction_days, kernel_initializer='random_uniform'))
+    model.add(Dense(1, kernel_initializer='random_uniform'))
     model.add(Activation("linear"))
     optimizer = Adam()
     model.compile(loss="mean_squared_error", optimizer=optimizer)
@@ -215,20 +215,19 @@ def draw_train_history(history):
 
 def print_predict_result(preds, test_y, initial_value):
     print("i,predict,test")
-    for i in range(0, len(preds), prediction_days):
-        for j in range(prediction_days):
-            predict = preds[i][j] * initial_value
-            test = test_y[i][j] * initial_value
-            print("%d,%f,%f" % (i+j, predict, test))
+    for i in range(0, len(preds)):
+        predict = preds[i][0] * initial_value
+        test = test_y[i][0] * initial_value
+        print("%d,%f,%f" % (i, predict, test))
 
 
 def draw_predict_result(preds, test_y):
     predict = []
     test = []
-    for i in range(len(preds) - (prediction_days * 10), len(preds), prediction_days):
-        for j in range(prediction_days):
-            predict.append(preds[i][j])
-            test.append(test_y[i][j])
+    # for i in range(len(preds) - (prediction_days * 10), len(preds), prediction_days):
+    for i in range(0, len(preds)):
+        predict.append(preds[i][0])
+        test.append(test_y[i][0])
 
     xdata = range(0, len(predict))
 
@@ -246,9 +245,9 @@ def draw_predict_result(preds, test_y):
 
 if __name__ == '__main__':
 
-    target_stock = ',6501.csv'
+    target_stock = 'sin.csv'
     stock_data_files = [
-        ',Nikkei225.csv', ',TOPIX.csv', target_stock,
+        target_stock,
     ]
     date_file = ',date.txt'
 
@@ -256,7 +255,7 @@ if __name__ == '__main__':
         date_file, stock_data_files, target_stock)
     # y_data = convert_data(adj_starts[stock_data_files.index(target_stock)])
     _y_data = convert_data(adj_ends[stock_data_files.index(target_stock)])
-    y_data = Technical.moving_average(_y_data, 25)[0].values
+    y_data = Technical.moving_average(_y_data, 5)[0].values
 
     # 学習データを生成
     X, Y = create_train_data(high, low, end, adj_starts, adj_ends,
