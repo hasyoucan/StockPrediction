@@ -25,14 +25,12 @@ class Scraper:
     def load_stock_data(self):
         if os.path.exists(self.file_name):
             return pd.read_csv(self.file_name,
-                               header=None,
-                               index_col=0,
-                               names=self.csv_headers)
+                               index_col=0)
         else:
-            return pd.DataFrame({}, columns=self.csv_headers[1:])
+            return pd.DataFrame({}, columns=self.csv_headers).set_index(self.csv_headers[0])
 
     def save_stock_data(self, stock_data):
-        stock_data.sort_index().to_csv(self.file_name, header=False)
+        stock_data.sort_index().dropna(how='all', axis=1).to_csv(self.file_name)
 
     def merge_stock_data(self, stock_data):
         today = date.today()
@@ -80,13 +78,14 @@ class Scraper:
 
                 # 1 ペイジ分のデイタ
                 df_page = pd.DataFrame({
+                    self.csv_headers[0]: dates,
                     self.csv_headers[1]: opens,
                     self.csv_headers[2]: highs,
                     self.csv_headers[3]: lows,
                     self.csv_headers[4]: closes,
                     self.csv_headers[5]: adj_closes,
                     self.csv_headers[6]: volumes,
-                }, index=dates)
+                }, columns=self.csv_headers).set_index(self.csv_headers[0])
 
                 # 既存のデイタにくっつける
                 new_stock_data = pd.concat([stocks, df_page], sort=False)

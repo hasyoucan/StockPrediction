@@ -17,12 +17,11 @@ class Predict(PredictBase):
     def set_draw_graph(self, v):
         self.draw_graph = v
 
-    def predict(self, stock_data_files, target_stock, date_file):
+    def predict(self, stock_data_files, target_stock):
         adj_starts, high, low, adj_ends, ommyo_rate = self.load_data(
-            date_file, stock_data_files)
-        y_data = self.pct_change(
-            adj_starts[stock_data_files.index(target_stock)])
-        y_data = pd.cut(y_data, self.category_threshold, labels=False)
+            stock_data_files)
+        _y_data = self.pct_change(adj_starts[target_stock])
+        y_data = pd.cut(_y_data, self.category_threshold, labels=False).values
 
         # 学習データを生成
         X, Y = self.create_train_data(
@@ -51,17 +50,17 @@ class Predict(PredictBase):
 
     def __create_prediction_data(self, adj_starts, high, low, adj_ends, ommyo_rate, samples):
 
-        udr_start = np.asarray([self.pct_change(v) for v in adj_starts])
-        udr_high = np.asarray([self.pct_change(v) for v in high])
-        udr_low = np.asarray([self.pct_change(v) for v in low])
-        udr_end = np.asarray([self.pct_change(v) for v in adj_ends])
+        udr_start = self.pct_change(adj_starts)
+        udr_high = self.pct_change(high)
+        udr_low = self.pct_change(low)
+        udr_end = self.pct_change(adj_ends)
 
         transposed = np.concatenate(
-            (udr_start, udr_high, udr_low, udr_end, ommyo_rate)).transpose()
+            (udr_start, udr_high, udr_low, udr_end, ommyo_rate), axis=1)
 
         _x = []
         # サンプルのデータを学習、1 サンプルずつ後ろにずらしていく
-        length = len(udr_end[0])
+        length = len(udr_end)
         for i in np.arange(length - samples, length - samples + 1):
             s = i + samples  # samplesサンプル間の変化を素性にする
             _x.append(transposed[i:s])

@@ -36,43 +36,43 @@ class PredictBase:
         threshold = 0.01
         self.category_threshold = [-1, -threshold, 0, threshold, 1]
 
-    def load_data(self, date_file, stock_data_files):
+    def load_data(self, stock_data_files):
         """
         Scraper が吐き出したファイルを読むのです。
         日付と調整後終値を返すのです。
         """
-        multi_loader = MultiLoader(date_file, stock_data_files)
+        multi_loader = MultiLoader(stock_data_files)
 
-        adj_starts = multi_loader.extract('adj_start')
-        high = multi_loader.extract('high')
-        low = multi_loader.extract('low')
-        adj_ends = multi_loader.extract('adj_end')
-        ommyo_rate = multi_loader.extract('ommyo_rate')
+        adj_starts = multi_loader.extract('Adj open')
+        high = multi_loader.extract('High')
+        low = multi_loader.extract('Low')
+        adj_ends = multi_loader.extract('Adj close')
+        ommyo_rate = multi_loader.extract('Ommyo rate')
 
         return (adj_starts, high, low, adj_ends, ommyo_rate)
 
-    def pct_change(self, values):
-        returns = pd.Series(values).pct_change()
-        returns[0] = 0
+    def pct_change(self, df):
+        returns = df.pct_change()
+        returns.iloc[0] = 0
         return returns
 
     def create_train_data(self, adj_starts, high, low, adj_ends, ommyo_rate, y_data, samples):
 
-        udr_start = np.asarray([self.pct_change(v) for v in adj_starts])
-        udr_high = np.asarray([self.pct_change(v) for v in high])
-        udr_low = np.asarray([self.pct_change(v) for v in low])
-        udr_end = np.asarray([self.pct_change(v) for v in adj_ends])
+        udr_start = self.pct_change(adj_starts)
+        udr_high = self.pct_change(high)
+        udr_low = self.pct_change(low)
+        udr_end = self.pct_change(adj_ends)
 
         # 銘柄×日付→日付×銘柄に変換
         # transposed = udr_start.transpose()
         # transposed = udr_end.transpose()
         transposed = np.concatenate(
-            (udr_start, udr_high, udr_low, udr_end, ommyo_rate)).transpose()
+            (udr_start, udr_high, udr_low, udr_end, ommyo_rate), axis=1)
 
         _x = []
         _y = []
         # サンプルのデータを学習、1 サンプルずつ後ろにずらしていく
-        length = len(udr_end[0])
+        length = len(udr_end)
         for i in np.arange(0, length - samples):
             s = i + samples  # samplesサンプル間の変化を素性にする
             _x.append(transposed[i:s])

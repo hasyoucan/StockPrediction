@@ -17,15 +17,14 @@ class TestValidate(PredictBase):
     def set_draw_graph(self, v):
         self.draw_graph = v
 
-    def test_predict(self, stock_data_files, target_stock, date_file):
+    def test_predict(self, stock_data_files, target_stock):
         adj_starts, high, low, adj_ends, ommyo_rate = self.load_data(
-            date_file, stock_data_files)
+            stock_data_files)
 
-        _y_data = self.pct_change(
-            adj_starts[stock_data_files.index(target_stock)])
+        _y_data = self.pct_change(adj_starts[target_stock])
         # y_data = pct_change(adj_ends[stock_data_files.index(target_stock)])
         # y_data = ommyo_rate[stock_data_files.index(target_stock)]
-        y_data = pd.cut(_y_data, self.category_threshold, labels=False)
+        y_data = pd.cut(_y_data, self.category_threshold, labels=False).values
 
         # 学習データを生成
         X, Y = self.create_train_data(

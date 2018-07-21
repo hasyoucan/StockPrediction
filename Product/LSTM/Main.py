@@ -19,13 +19,13 @@ class Main:
             predict = Predict()
             predict.set_draw_graph(self.draw_graph)
             predict.predict(self.stock_data_files,
-                            self.target_stock, self.date_file)
+                            self.target_stock)
         else:
             print('Do test and validation.')
             tv = TestValidate()
             tv.set_draw_graph(self.draw_graph)
             tv.test_predict(self.stock_data_files,
-                            self.target_stock, self.date_file)
+                            self.target_stock)
 
     def __get_opt(self):
         try:
