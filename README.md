@@ -17,7 +17,7 @@ source mkvenv.src.sh
 Python のバージョンを確認。
 ```
 python -V
-Python 3.6.5
+Python 3.6.6
 ```
 
 必要なパッケージをインストール
@@ -43,25 +43,19 @@ pip install matplotlib
 
 
 
-## CreateDateFile
-
-複数の株価データをまとめるのに便利なよう、複数の株価データから日付部分を抽出するスクリプトを用意しています。`CreateDateFile.sh` を実行すると、`,date.txt` ファイルが作成されます。
-
-
-
-## LSTM4
+## LSTM6
 
 LSTM を使って株価の変動を予測します。
-Scraper が生成した株価データを用いて、株価の変動を予測します。利用する株価データは `targets.txt` で設定します。
-`LSTM4/StockPrediction.py` を実行すると学習とテストが実行されます。
+Scraper が生成した株価データを用いて、株価の変動を予測します。
+`LSTM6/StockPrediction.py` を実行すると学習とテストが実行されます。
 
 
 
 ## Product/LSTM
 
 LSTM を使って株価の変動を予測します。
-Scraper が生成した株価データを用いて、株価の変動を予測します。利用する株価データは `targets.txt` で設定します。
-`RunLstmPredict.py` を実行すると翌日の値動きを予測します。
+Scraper が生成した株価データを用いて、株価の変動を予測します。
+`RunLstmPredict.sh` を実行すると翌日の値動きを予測します。
 
 
 ## junk
