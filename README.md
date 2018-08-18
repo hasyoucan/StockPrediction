@@ -4,27 +4,25 @@
 ## 必要なもの
 
 * Python 3
-* venv
+* pyenv
 
 
 ## インストール手順
 
 ```
-sudo apt install python3-venv
+sudo apt-get install -y make build-essential libssl-dev zlib1g-dev libbz2-dev \
+libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev \
+xz-utils tk-dev libffi-dev liblzma-dev
+curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+pyenv install 3.6.6
 source mkvenv.src.sh
-```
-
-Python のバージョンを確認。
-```
-python -V
-Python 3.6.6
 ```
 
 必要なパッケージをインストール
 ```
 pip install requests
 pip install beautifulsoup4
-pip install numpy
+pip install --no-wheel numpy
 pip install sklearn
 pip install scipy
 pip install pandas
@@ -33,6 +31,10 @@ pip install keras
 pip install matplotlib
 ```
 
+
+## `mkvenv.src.sh`
+
+virtualenv に `StockPrediction` という名前で環境を作成します。すでに環境がある場合は `activate` します。本リポジトリにある Python プログラムを動かす前に、 `source mkvenv.src.sh` します。
 
 
 ## Scraper

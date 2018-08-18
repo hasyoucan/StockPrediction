@@ -1,9 +1,13 @@
 #! /bin/bash
 
-PYTHON_VENV_NAME=venv
+PYTHON_VENV_NAME=StockPrediction
+PYTHON_VERSION=3.6.6
 
-if [ ! -d $PYTHON_VENV_NAME ]; then
-    python3 -m venv $PYTHON_VENV_NAME
+pyenv virtualenvs | grep $PYTHON_VENV_NAME > /dev/null
+found=$?
+
+if [ $found -ne 0 ]; then
+    pyenv virtualenv $PYTHON_VERSION $PYTHON_VENV_NAME
 fi
 
-source $PYTHON_VENV_NAME/bin/activate
+pyenv activate $PYTHON_VENV_NAME
