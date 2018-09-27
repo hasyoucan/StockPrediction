@@ -38,8 +38,8 @@ def load_data(stock_data_files):
     multi_loader = MultiLoader(stock_data_files)
 
     adj_starts = multi_loader.extract('Adj open')
-    high = multi_loader.extract('High')
-    low = multi_loader.extract('Low')
+    high = multi_loader.extract('Adj high')
+    low = multi_loader.extract('Adj low')
     adj_ends = multi_loader.extract('Adj close')
     ommyo_rate = multi_loader.extract('Ommyo rate')
 

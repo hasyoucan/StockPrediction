@@ -38,6 +38,10 @@ class MultiLoader:
                 df_all['Ommyo'][f]) / df_all['Close'][f]
             df_all.loc[:, ('Adj open', f)] = (df_all['Open'][f]) * \
                 df_all['Adj close'][f] / df_all['Close'][f]
+            df_all.loc[:, ('Adj high', f)] = (df_all['High'][f]) * \
+                df_all['Adj close'][f] / df_all['Close'][f]
+            df_all.loc[:, ('Adj low', f)] = (df_all['Low'][f]) * \
+                df_all['Adj close'][f] / df_all['Close'][f]
 
         return df_all.dropna()
 
